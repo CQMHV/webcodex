@@ -142,6 +142,21 @@ fn project_path_schema(description: &str) -> Value {
     })
 }
 
+fn exact_replace_shorthand_schema() -> Value {
+    json!({
+        "type": "object",
+        "additionalProperties": false,
+        "description": "One non-positional replace_exact; positional selectors use canonical edit form.",
+        "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "old_text": {"type": "string", "minLength": 1},
+            "new_text": {"type": "string"},
+            "expected_read_revision": {"type": "integer", "minimum": 1, "maximum": 9007199254740991_u64}
+        },
+        "required": ["path", "old_text", "new_text"]
+    })
+}
+
 fn apply_file_change_schema() -> Value {
     json!({
         "oneOf": [
@@ -209,7 +224,8 @@ fn apply_file_change_schema() -> Value {
                     "expected_read_revision": read_revision_schema("Required full-file snapshot guard from read_files for rename.")
                 },
                 "required": ["kind", "path", "to_path", "expected_read_revision"]
-            }
+            },
+            exact_replace_shorthand_schema()
         ]
     })
 }
@@ -226,7 +242,7 @@ pub fn apply_text_edits_input_schema() -> Value {
                 "type": "array",
                 "minItems": 1,
                 "maxItems": 16,
-                "description": "Transactional list of 1..16 file changes. Each change uses the fields declared by its kind; the whole batch is preflighted before mutation.",
+                "description": "Transactional list of 1..16 file changes. Use explicit kind forms, or path + old_text + new_text for one replace_exact; the whole batch is preflighted before mutation.",
                 "items": apply_file_change_schema()
             },
             "dry_run": {

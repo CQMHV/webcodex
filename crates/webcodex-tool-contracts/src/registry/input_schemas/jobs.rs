@@ -236,7 +236,13 @@ pub fn run_shell_input_schema() -> Value {
         (
             "timeout_secs",
             "integer",
-            "Total command timeout in seconds (minimum 1, default 60). Values above 120 are accepted and clamped to 120. Explicit effective values above 60 may hand off the same original execution as a durable Job when the Runner supports async shell Jobs; default 60-second calls remain synchronous.",
+            "Total lifetime seconds (default 60, min 1); clamped to shared structured-execution ceiling; named SSH keeps direct ceiling.",
+            false,
+        ),
+        (
+            "sync_wait_secs",
+            "integer",
+            "same-execution durable Job handoff grace (default 10s), clamped by 60s and timeout; controls return, not when the command is killed; named SSH unsupported.",
             false,
         ),
         (
@@ -266,6 +272,7 @@ pub fn run_shell_input_schema() -> Value {
     ));
     schema["properties"]["timeout_secs"]["minimum"] = json!(1);
     schema["properties"]["timeout_secs"]["default"] = json!(60);
+    schema["properties"]["sync_wait_secs"]["minimum"] = json!(1);
     with_optional_result_expectation(with_optional_validation_assertion(schema), false)
 }
 
