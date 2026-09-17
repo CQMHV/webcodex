@@ -10,6 +10,8 @@ mod agent_waits;
 mod artifacts;
 #[cfg(feature = "workspace-checkpoints")]
 mod checkpoints;
+#[cfg(feature = "experimental-code-mode")]
+mod code_mode;
 mod coding_agents;
 mod communication;
 mod computer;
@@ -907,6 +909,13 @@ pub struct ToolActivitySemantics {
     pub kind: ToolActivityKind,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToolCompositionPolicy {
+    Denied,
+    Sequential,
+    Parallel,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ToolDefinition {
     pub name: &'static str,
@@ -922,6 +931,9 @@ pub struct ToolDefinition {
     pub operator_extension_family: Option<ToolOperatorExtensionFamily>,
     /// Optional canonical selection semantics for ordinary execution tools.
     pub execution: Option<ToolExecutionContract>,
+    /// Canonical scheduling policy for nested orchestration. This grants no
+    /// authority; orchestration frontends retain their own explicit admission.
+    pub composition: ToolCompositionPolicy,
     pub visibility: ToolVisibility,
     pub category: &'static str,
     pub metadata: ToolMetadata,
@@ -945,6 +957,11 @@ impl ToolDefinition {
 
     pub const fn with_execution(mut self, execution: ToolExecutionContract) -> Self {
         self.execution = Some(execution);
+        self
+    }
+
+    pub const fn with_composition_policy(mut self, policy: ToolCompositionPolicy) -> Self {
+        self.composition = policy;
         self
     }
 
@@ -1125,6 +1142,7 @@ const fn def(
         gpt_action_exposure: ToolGptActionExposure::Inherit,
         operator_extension_family: None,
         execution: None,
+        composition: ToolCompositionPolicy::Denied,
         visibility,
         category,
         metadata: make_tool_metadata(
@@ -1279,6 +1297,8 @@ const TOOL_DEFINITION_GROUPS: &[&[ToolDefinition]] = &[
     #[cfg(feature = "workspace-checkpoints")]
     checkpoints::DEFINITIONS,
     coding_agents::DEFINITIONS,
+    #[cfg(feature = "experimental-code-mode")]
+    code_mode::DEFINITIONS,
     computer::DEFINITIONS,
     diagnostics::DEFINITIONS,
     discovery::DEFINITIONS,

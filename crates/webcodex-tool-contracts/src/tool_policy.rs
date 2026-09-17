@@ -5,12 +5,13 @@ use super::metadata::{
 };
 use super::tool_definition::{
     tool_definitions, RunnerCapabilityRequirement, ToolActivityInteraction, ToolActivityKind,
-    ToolActivityPresentation, ToolActivitySemantics, ToolAuditPolicy, ToolContextContinuityPolicy,
-    ToolDefinition, ToolDiffReviewEvidence, ToolEffectAnnotations, ToolExecutionContract,
-    ToolExecutionForm, ToolExplorationEvidence, ToolGptActionExposure, ToolOperatorExtensionFamily,
-    ToolReviewEvidence, ToolSessionEvidencePolicy, ToolValidationIdentityKind,
-    PERMISSION_RISK_ARTIFACT_WRITE, PERMISSION_RISK_DESTRUCTIVE, PERMISSION_RISK_PATCH,
-    PERMISSION_RISK_SHELL, PERMISSION_RISK_VALIDATION, PERMISSION_RISK_WRITE, TOOL_CATEGORY_JOB,
+    ToolActivityPresentation, ToolActivitySemantics, ToolAuditPolicy, ToolCompositionPolicy,
+    ToolContextContinuityPolicy, ToolDefinition, ToolDiffReviewEvidence, ToolEffectAnnotations,
+    ToolExecutionContract, ToolExecutionForm, ToolExplorationEvidence, ToolGptActionExposure,
+    ToolOperatorExtensionFamily, ToolReviewEvidence, ToolSessionEvidencePolicy,
+    ToolValidationIdentityKind, PERMISSION_RISK_ARTIFACT_WRITE, PERMISSION_RISK_DESTRUCTIVE,
+    PERMISSION_RISK_PATCH, PERMISSION_RISK_SHELL, PERMISSION_RISK_VALIDATION,
+    PERMISSION_RISK_WRITE, TOOL_CATEGORY_JOB,
 };
 
 impl ToolDefinition {
@@ -229,6 +230,14 @@ pub fn runtime_tool_operator_extension_family(name: &str) -> Option<ToolOperator
 /// contract from names, descriptions, effects, or Runner capabilities.
 pub fn runtime_tool_execution_contract(name: &str) -> Option<ToolExecutionContract> {
     lookup_tool_definition(name).and_then(|definition| definition.execution)
+}
+
+/// Canonical nested-orchestration scheduling policy. Unknown/non-runtime names
+/// fail closed and are never composable by implication from effect metadata.
+pub fn runtime_tool_composition_policy(name: &str) -> ToolCompositionPolicy {
+    lookup_tool_definition(name)
+        .map(|definition| definition.composition)
+        .unwrap_or(ToolCompositionPolicy::Denied)
 }
 
 pub fn runtime_tool_session_evidence_policy(name: &str) -> ToolSessionEvidencePolicy {

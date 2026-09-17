@@ -33,6 +33,8 @@ pub const TOOL_DISCOVERY_GROUPS: &[ToolDiscoveryGroup] = &[
             "project_overview",
             "list_project_tracked_files",
             "read_files",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec",
             "run_process",
             "run_script",
             "run_shell",
@@ -269,6 +271,12 @@ pub const TOOL_DISCOVERY_GROUPS: &[ToolDiscoveryGroup] = &[
             "runner_config_check",
             "runner_config_reload",
             "tool_manifest",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec_effectful",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec_mutating",
             "plugin_tool",
             "skill_load",
             "run_skill_resource",
@@ -363,6 +371,8 @@ pub const TOOL_RECOMMENDED_FLOWS: &[ToolRecommendedFlow] = &[
         tools: &[
             "search_project_texts",
             "read_files",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec",
             "run_process",
             "run_script",
             "run_shell",
@@ -478,6 +488,12 @@ pub const CODING_INTENT_TOOL_NAMES: &[&str] = &[
     "search_project_texts",
     "read_files",
     "project_artifact",
+    #[cfg(feature = "experimental-code-mode")]
+    "code_mode_exec",
+    #[cfg(feature = "experimental-code-mode")]
+    "code_mode_exec_effectful",
+    #[cfg(feature = "experimental-code-mode")]
+    "code_mode_exec_mutating",
     // Distinct semantic navigation capabilities remain useful even though they
     // are long-tail Adaptive gateway targets.
     "document_symbols",
@@ -527,6 +543,8 @@ pub const TOOL_MANIFEST_INTENTS: &[ToolManifestIntent] = &[
             "list_project_tracked_files",
             "read_files",
             "search_project_texts",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec",
             "list_project_files",
             "git_status",
             "git_log",
@@ -551,6 +569,8 @@ pub const TOOL_MANIFEST_INTENTS: &[ToolManifestIntent] = &[
             "list_project_files",
             "search_project_texts",
             "read_files",
+            #[cfg(feature = "experimental-code-mode")]
+            "code_mode_exec",
             "git_status",
             "git_log",
             "tool_manifest",
