@@ -26,6 +26,55 @@ pub fn skill_list_input_schema() -> Value {
     })
 }
 
+pub fn run_skill_resource_input_schema() -> Value {
+    let mut schema = super::jobs::run_process_input_schema();
+    let properties = schema["properties"]
+        .as_object_mut()
+        .expect("run_process properties");
+    for key in [
+        "stdin",
+        "assertion_name",
+        "result_expectation",
+        "accepted_exit_codes",
+    ] {
+        properties.remove(key);
+    }
+    properties.insert(
+        "skill_id".to_string(),
+        json!({
+            "type": "string",
+            "pattern": "^wc_skill_[A-Za-z0-9_-]{21}[AQgw]$",
+            "description": "Opaque Runner Skill identity returned by skill_load or skill_list."
+        }),
+    );
+    properties.insert("path".to_string(), json!({
+        "type": "string",
+        "minLength": 9,
+        "maxLength": MAX_SKILL_RESOURCE_PATH_CHARS,
+        "pattern": "^scripts/",
+        "description": "Skill-package-relative script path under scripts/. Absolute paths and traversal are rejected."
+    }));
+    properties.insert("expected_definition_revision".to_string(), json!({
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "Required SKILL.md definition digest fence. For configured live Skills this fences the definition only; script resource bytes are read live at execution. Managed installed Skills additionally use expected_package_revision to fence the immutable package."
+    }));
+    properties.insert("expected_package_revision".to_string(), json!({
+        "type": "string",
+        "pattern": "^wc_skillpkg_[A-Za-z0-9_-]{43}$",
+        "description": "Required for operator-installed Skills and forbidden for configured live Skills. Pins the immutable installed package revision."
+    }));
+    properties.remove("executable");
+    properties["args"]["description"] = json!("Ordered literal script arguments. WebCodex selects the interpreter and stdin-reading invocation from the trusted Skill resource extension, then appends these values after the interpreter's script marker. The Skill script body is never present in model arguments.");
+    schema["required"] = json!([
+        "project",
+        "skill_id",
+        "path",
+        "expected_definition_revision"
+    ]);
+    schema
+}
+
 pub fn skill_load_input_schema() -> Value {
     json!({
         "type": "object",

@@ -1,15 +1,15 @@
-use super::RunnerCapabilityRequirement::{FileRead, SkillManagement};
+use super::RunnerCapabilityRequirement::{FileRead, SkillManagement, StructuredProcess};
 use super::ToolVisibility::{ModelHidden, ModelVisible};
 use super::{
-    adaptive_runtime_direct, def, model_spec, ToolDefinition, ToolOperatorExtensionFamily,
-    TOOL_CATEGORY_RUNTIME,
+    adaptive_runtime_direct, def, model_spec, require_all_scopes, ToolDefinition,
+    ToolOperatorExtensionFamily, TOOL_CATEGORY_RUNTIME,
 };
 use crate::metadata::{
     ToolPathHint::None as NoPath,
-    ToolRisk::{Read, SkillManage},
-    ADMIN, PROJECT_READ, TOOL_PROVIDER_RUNNER,
+    ToolRisk::{JobRun, Read, SkillManage},
+    ADMIN, JOB_RUN, PROJECT_READ, TOOL_PROVIDER_RUNNER,
 };
-use crate::registry::input_schemas::skill_load_input_schema;
+use crate::registry::input_schemas::{run_skill_resource_input_schema, skill_load_input_schema};
 
 /// Project Skill runtime tools. `skill_load` is the narrow direct model path;
 /// the broader discovery/read compatibility tools remain hidden operator
@@ -74,6 +74,58 @@ pub(super) const DEFINITIONS: &[ToolDefinition] = &[
             skill_load_input_schema,
         ),
         27,
+    ),
+    adaptive_runtime_direct(
+        require_all_scopes(
+            model_spec(
+                def(
+                    "run_skill_resource",
+                    super::ToolAuditPolicy::typed_fields(&[
+                        super::ToolAuditResultField::value("skill_id"),
+                        super::ToolAuditResultField::value("skill_path"),
+                        super::ToolAuditResultField::value("skill_sha256"),
+                        super::ToolAuditResultField::value("skill_trust"),
+                        super::ToolAuditResultField::value("skill_definition_revision"),
+                        super::ToolAuditResultField::value("skill_package_revision"),
+                        super::ToolAuditResultField::value("execution_state"),
+                        super::ToolAuditResultField::value("exit_code"),
+                        super::ToolAuditResultField::value("failure_kind"),
+                        super::ToolAuditResultField::value("tool_failure"),
+                    ])
+                    .session_input(super::ToolAuditSessionInputPolicy::OmitTopLevel(&[
+                        "args",
+                        "process_summary",
+                    ])),
+                    ModelVisible,
+                    TOOL_CATEGORY_RUNTIME,
+                    Some(StructuredProcess),
+                    TOOL_PROVIDER_RUNNER,
+                    super::ToolSemanticContract {
+                        effect: super::ToolEffect::Execute,
+                        risk: JobRun,
+                        approval: super::ToolApprovalPolicy::Standard,
+                        idempotency: super::ToolIdempotency::NonIdempotent,
+                    },
+                    Some(JOB_RUN),
+                    true,
+                    NoPath,
+                    true,
+                    true,
+                    super::ToolSessionEvidencePolicy::NONE,
+                ),
+                "Execute one supported scripts/*.py or scripts/*.sh resource from a trusted Runner-configured live Skill or Runner-installed managed Skill without exposing or retransmitting its source through model context. Configured Skills are live resources: expected_definition_revision fences the selected SKILL.md definition, while resource bytes are read at execution and are not package-revision-pinned; skill_sha256 reports the bytes actually executed. Managed installed Skills additionally require expected_package_revision to fence the immutable package. WebCodex selects the interpreter, supplies the script over stdin, and appends only caller-provided script arguments after the interpreter's script marker; project-content Skills are rejected.",
+                run_skill_resource_input_schema,
+            )
+            .with_gpt_action_description("Execute a trusted Runner Skill script. Configured Skills are live and definition-fenced by expected_definition_revision; managed Skills additionally require expected_package_revision. WebCodex selects the .py/.sh interpreter; project-content Skills are rejected.")
+            .with_execution(super::ToolExecutionContract::new(
+                super::ToolExecutionForm::NativeArgv,
+                super::ToolExecutionLifetime::Runner,
+                super::ToolExecutionStart::SyncFirst,
+                super::ToolExecutionContinuation::ObserveJobs,
+            )),
+            &[PROJECT_READ, JOB_RUN],
+        ),
+        71,
     ),
     def(
         "skill_list",
