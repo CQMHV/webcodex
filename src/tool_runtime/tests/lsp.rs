@@ -9,6 +9,7 @@ use crate::lsp_bridge::{
     WorkspaceSymbolsResult, AGENT_LSP_REQUEST_KIND,
 };
 use crate::runner_protocol::{RunnerCapabilities, RunnerRegisterRequest};
+use crate::tool_runtime::tool_audit::ToolCallAuditProjection;
 use crate::tool_runtime::tool_definition::{
     lookup_tool_definition, model_visible_tool_definitions, RunnerCapabilityRequirement,
     TOOL_CATEGORY_LSP,
@@ -262,19 +263,12 @@ fn document_diagnostics_tool_call_parser_produces_only_typed_fields() {
             && path == "src/main.rs"
             && session_id == "wc_sess_demo"
     ));
-    let call_with_ignored_internal_extra = ToolCall::from_tool_name(
+    let error = ToolCall::from_tool_name(
         "document_diagnostics",
         json!({"project": "agent:oe:demo", "path": "src/main.rs", "timeout": 30}),
     )
-    .unwrap();
-    assert!(matches!(
-        call_with_ignored_internal_extra,
-        ToolCall::DocumentDiagnostics {
-            limit: None,
-            session_id: None,
-            ..
-        }
-    ));
+    .unwrap_err();
+    assert!(error.contains("unknown field `timeout`"), "{error}");
 }
 
 async fn register_lsp_agent(
