@@ -217,7 +217,7 @@ class AgentLoopReportTests(unittest.TestCase):
         return annotation
 
     def test_multiple_traces_same_window_and_nonmeaningful_call_preserves_predecessor(self) -> None:
-        self.insert_event("e1", started=100, handed=120, trace_id="trace-a")
+        self.insert_event("read_only", started=100, handed=120, trace_id="trace-a")
         self.insert_event(
             "noise",
             tool="tool_manifest",
@@ -247,7 +247,7 @@ class AgentLoopReportTests(unittest.TestCase):
         self.assertEqual(result["canonical_calls"]["total"], 3)
 
     def test_overlap_is_counted_without_fabricating_negative_gap(self) -> None:
-        self.insert_event("e1", started=100, handed=180)
+        self.insert_event("read_only", started=100, handed=180)
         self.insert_event("e2", started=150, handed=190, transition="overlap")
         self.insert_event("e3", started=210, handed=220, transition="serial")
 
@@ -308,7 +308,7 @@ class AgentLoopReportTests(unittest.TestCase):
         self.assertFalse(result["availability"]["serialized_tool_result_bytes"]["available"])
 
     def test_runner_request_count_dedupes_duplicate_and_out_of_order_events(self) -> None:
-        self.insert_event("e1", trace_id="trace-a")
+        self.insert_event("read_only", trace_id="trace-a")
         self.insert_event(
             "e2",
             started=150,
@@ -588,12 +588,12 @@ class AgentLoopReportTests(unittest.TestCase):
 
     def test_code_mode_composition_aggregates_effect_and_projection_counters(self) -> None:
         self.insert_event(
-            "e2b",
+            "guarded_edit",
             tool="code_mode_exec_mutating",
             composition=code_mode_composition(input_bytes=80),
         )
         self.insert_event(
-            "e2a",
+            "validation",
             tool="code_mode_exec_effectful",
             started=140,
             handed=170,
@@ -734,7 +734,17 @@ class AgentLoopReportTests(unittest.TestCase):
         self.assertEqual(len(typed_cases), 10)
         self.assertEqual(
             {case["code_mode_surface"] for case in typed_cases},
-            {"e1", "e2a", "e2b"},
+            {"read_only", "validation", "guarded_edit"},
+        )
+
+        legacy = copy.deepcopy(manifest)
+        legacy_case = legacy["cases"][0]
+        legacy_case["code_mode_surface"] = "e1"
+        legacy_fingerprint = report._case_fingerprint(legacy_case)
+        validated_legacy = report.validate_case_manifest(legacy)
+        self.assertEqual(validated_legacy["cases"][0]["code_mode_surface"], "e1")
+        self.assertEqual(
+            report._case_fingerprint(validated_legacy["cases"][0]), legacy_fingerprint
         )
 
         broken = copy.deepcopy(manifest)
@@ -746,6 +756,11 @@ class AgentLoopReportTests(unittest.TestCase):
         bad_surface["cases"][-1]["code_mode_surface"] = "generic_code_mode"
         with self.assertRaisesRegex(report.ReportError, "code_mode_surface"):
             report.validate_case_manifest(bad_surface)
+
+        bad_surface_type = copy.deepcopy(manifest)
+        bad_surface_type["cases"][-1]["code_mode_surface"] = ["read_only"]
+        with self.assertRaisesRegex(report.ReportError, "code_mode_surface"):
+            report.validate_case_manifest(bad_surface_type)
 
         bad_focus = copy.deepcopy(manifest)
         bad_focus["cases"][-1]["dogfood_focus"] = ["same", "same"]
@@ -780,21 +795,30 @@ class AgentLoopReportTests(unittest.TestCase):
             case_manifest=None,
             case_id="focused_edit_validation",
             variant="code_mode",
+            surface="guarded_edit",
+            base_revision="a" * 40,
+        )
+        self.assertEqual(metadata["surface"], "guarded_edit")
+
+        legacy_metadata = report._benchmark_metadata(
+            case_manifest=None,
+            case_id="focused_edit_validation",
+            variant="code_mode",
             surface="e2b",
             base_revision="a" * 40,
         )
-        self.assertEqual(metadata["surface"], "e2b")
+        self.assertEqual(legacy_metadata["surface"], "e2b")
 
     def test_benchmark_case_rejects_wrong_declared_code_mode_surface(self) -> None:
         with self.assertRaisesRegex(
             report.ReportError,
-            "requires Code Mode surface e1",
+            "requires Code Mode surface read_only",
         ):
             report._benchmark_metadata(
                 case_manifest=None,
                 case_id="readonly_review",
                 variant="code_mode",
-                surface="e2a",
+                surface="validation",
                 base_revision="a" * 40,
             )
 
@@ -835,6 +859,11 @@ class AgentLoopReportTests(unittest.TestCase):
             },
         }
         self.assertEqual(report.validate_run_annotation(copy.deepcopy(value)), value)
+
+        legacy = copy.deepcopy(value)
+        legacy["variant"] = "code_mode"
+        legacy["surface"] = "e1"
+        self.assertEqual(report.validate_run_annotation(copy.deepcopy(legacy)), legacy)
 
         leaked = copy.deepcopy(value)
         leaked["session_id"] = "wc_sess_should_not_be_stored"
@@ -977,7 +1006,7 @@ class AgentLoopReportTests(unittest.TestCase):
         code_annotation = self.write_annotation(
             "code-paired.json",
             variant="code_mode",
-            surface="e1",
+            surface="read_only",
             base_revision=base_revision,
             repair_turns={"total": 0, "by_reason": {}},
             task_timing={"started_at_ms": 0, "ended_at_ms": 700},
@@ -998,7 +1027,7 @@ class AgentLoopReportTests(unittest.TestCase):
             workflow_session_id="wc_sess_code",
             case_id="readonly_review",
             variant="code_mode",
-            surface="e1",
+            surface="read_only",
             base_revision=base_revision,
             run_annotation=code_annotation,
         )
@@ -1007,6 +1036,11 @@ class AgentLoopReportTests(unittest.TestCase):
 
         self.assertTrue(comparison["case_compatibility"]["comparable"])
         self.assertTrue(comparison["pair_compatibility"]["comparable"])
+        legacy_code = copy.deepcopy(code)
+        legacy_code["benchmark"]["surface"] = "e1"
+        self.assertTrue(
+            report.compare_reports(direct, legacy_code)["pair_compatibility"]["comparable"]
+        )
         self.assertTrue(comparison["correctness_compatibility"]["comparable"])
         self.assertTrue(comparison["throughput_compatibility"]["comparable"])
         self.assertFalse(metrics["model_round_trips"]["comparable"])
@@ -1071,13 +1105,13 @@ class AgentLoopReportTests(unittest.TestCase):
             workflow_session_id="wc_sess_code",
             case_id="focused_edit_validation",
             variant="code_mode",
-            surface="e2b",
+            surface="guarded_edit",
             base_revision=base_revision,
             run_annotation=self.write_annotation(
                 "code-validation.json",
                 case_id="focused_edit_validation",
                 variant="code_mode",
-                surface="e2b",
+                surface="guarded_edit",
                 base_revision=base_revision,
                 correctness={
                     "task_verdict": "pass",
@@ -1123,12 +1157,12 @@ class AgentLoopReportTests(unittest.TestCase):
             workflow_session_id="wc_sess_code",
             case_id="readonly_review",
             variant="code_mode",
-            surface="e1",
+            surface="read_only",
             base_revision=base_revision,
             run_annotation=self.write_annotation(
                 "code-bad.json",
                 variant="code_mode",
-                surface="e1",
+                surface="read_only",
                 base_revision=base_revision,
                 repair_turns={"total": 0, "by_reason": {}},
                 correctness={

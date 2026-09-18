@@ -22,7 +22,14 @@ from typing import Any, Iterable
 SCHEMA_VERSION = 1
 DEFAULT_CASE_MANIFEST = Path(__file__).with_name("agent_loop_cases.json")
 CODE_MODE_TOOLS = frozenset(("code_mode_exec", "code_mode_exec_effectful", "code_mode_exec_mutating"))
-CODE_MODE_SURFACES = frozenset(("e1", "e2a", "e2b"))
+CANONICAL_CODE_MODE_SURFACES = ("read_only", "validation", "guarded_edit")
+CODE_MODE_SURFACES = frozenset(CANONICAL_CODE_MODE_SURFACES)
+LEGACY_CODE_MODE_SURFACE_ALIASES = {
+    "e1": "read_only",
+    "e2a": "validation",
+    "e2b": "guarded_edit",
+}
+CODE_MODE_SURFACE_CHOICES = (*CANONICAL_CODE_MODE_SURFACES, *LEGACY_CODE_MODE_SURFACE_ALIASES)
 RUN_ANNOTATION_SCHEMA_VERSION = 1
 REPAIR_REASONS = frozenset((
     "invalid_arguments",
@@ -78,6 +85,14 @@ def _require_nonempty_string(value: Any, field: str) -> str:
     return value
 
 
+def _canonical_code_mode_surface(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    if value in CODE_MODE_SURFACES:
+        return value
+    return LEGACY_CODE_MODE_SURFACE_ALIASES.get(value)
+
+
 def validate_case_manifest(value: Any) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ReportError("case manifest must be a JSON object")
@@ -102,9 +117,9 @@ def validate_case_manifest(value: Any) -> dict[str, Any]:
         if not isinstance(case["validation"].get("required"), bool):
             raise ReportError(f"cases[{index}].validation.required must be a boolean")
         surface = case.get("code_mode_surface")
-        if surface is not None and surface not in CODE_MODE_SURFACES:
+        if surface is not None and _canonical_code_mode_surface(surface) is None:
             raise ReportError(
-                f"cases[{index}].code_mode_surface must be one of e1, e2a, or e2b"
+                f"cases[{index}].code_mode_surface must be one of read_only, validation, or guarded_edit"
             )
         focus = case.get("dogfood_focus")
         if focus is not None:
@@ -178,8 +193,8 @@ def validate_run_annotation(value: Any) -> dict[str, Any]:
     if variant == "direct":
         if surface != "direct":
             raise ReportError("direct run annotation requires surface=direct")
-    elif surface not in CODE_MODE_SURFACES:
-        raise ReportError("code_mode run annotation requires surface=e1, e2a, or e2b")
+    elif _canonical_code_mode_surface(surface) is None:
+        raise ReportError("code_mode run annotation requires surface=read_only, validation, or guarded_edit")
     if not _is_exact_git_revision(value.get("base_revision")):
         raise ReportError("run annotation base_revision must be an exact 40-hex Git commit")
     if not _is_exact_sha256(value.get("case_fingerprint")):
@@ -959,9 +974,9 @@ def _benchmark_metadata(*, case_manifest: Path | None, case_id: str | None, vari
             raise ReportError("--variant direct requires --surface direct")
     elif variant == "code_mode":
         if surface is None:
-            raise ReportError("--variant code_mode benchmark runs require --surface e1, e2a, or e2b")
-        if surface not in CODE_MODE_SURFACES:
-            raise ReportError("--variant code_mode requires --surface e1, e2a, or e2b")
+            raise ReportError("--variant code_mode benchmark runs require --surface read_only, validation, or guarded_edit")
+        if _canonical_code_mode_surface(surface) is None:
+            raise ReportError("--variant code_mode requires --surface read_only, validation, or guarded_edit")
     if not _is_exact_git_revision(base_revision):
         raise ReportError("--case-id requires --base-revision as an exact 40-hex Git commit")
     manifest = load_case_manifest(case_manifest or DEFAULT_CASE_MANIFEST)
@@ -970,7 +985,8 @@ def _benchmark_metadata(*, case_manifest: Path | None, case_id: str | None, vari
     if (
         variant == "code_mode"
         and expected_surface is not None
-        and surface != expected_surface
+        and _canonical_code_mode_surface(surface)
+        != _canonical_code_mode_surface(expected_surface)
     ):
         raise ReportError(
             f"case {case_id} requires Code Mode surface {expected_surface}"
@@ -1219,10 +1235,13 @@ def _pair_compatibility(
             "comparable": False,
             "reason": "baseline must be the direct variant with surface=direct",
         }
-    if right.get("variant") != "code_mode" or right.get("surface") not in CODE_MODE_SURFACES:
+    if (
+        right.get("variant") != "code_mode"
+        or _canonical_code_mode_surface(right.get("surface")) is None
+    ):
         return {
             "comparable": False,
-            "reason": "candidate must be code_mode with explicit surface=e1, e2a, or e2b",
+            "reason": "candidate must be code_mode with explicit surface=read_only, validation, or guarded_edit",
         }
     return {"comparable": True, "reason": None}
 
@@ -1373,7 +1392,7 @@ def _build_parser() -> argparse.ArgumentParser:
     summarize_parser.add_argument("--case-manifest", type=Path)
     summarize_parser.add_argument("--case-id")
     summarize_parser.add_argument("--variant", choices=("direct", "code_mode"))
-    summarize_parser.add_argument("--surface", choices=("direct", "e1", "e2a", "e2b"))
+    summarize_parser.add_argument("--surface", choices=("direct", *CODE_MODE_SURFACE_CHOICES))
     summarize_parser.add_argument("--base-revision")
     summarize_parser.add_argument("--run-annotation", type=Path)
     summarize_parser.add_argument("--output", type=Path)
