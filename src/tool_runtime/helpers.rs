@@ -37,47 +37,6 @@ fn run_command_sync_with_shell(
 }
 
 #[cfg(test)]
-const TEST_COMMAND_CONCURRENCY_LIMIT: usize = 32;
-
-#[cfg(test)]
-fn test_command_concurrency_state() -> &'static (std::sync::Mutex<usize>, std::sync::Condvar) {
-    static STATE: std::sync::OnceLock<(std::sync::Mutex<usize>, std::sync::Condvar)> =
-        std::sync::OnceLock::new();
-    STATE.get_or_init(|| (std::sync::Mutex::new(0), std::sync::Condvar::new()))
-}
-
-#[cfg(test)]
-struct TestCommandPermit;
-
-#[cfg(test)]
-impl Drop for TestCommandPermit {
-    fn drop(&mut self) {
-        let (active, available) = test_command_concurrency_state();
-        let mut active = active
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner());
-        debug_assert!(*active > 0, "test command permit underflow");
-        *active = active.saturating_sub(1);
-        available.notify_one();
-    }
-}
-
-#[cfg(test)]
-fn acquire_test_command_permit() -> TestCommandPermit {
-    let (active, available) = test_command_concurrency_state();
-    let mut active = active
-        .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner());
-    while *active >= TEST_COMMAND_CONCURRENCY_LIMIT {
-        active = available
-            .wait(active)
-            .unwrap_or_else(|poisoned| poisoned.into_inner());
-    }
-    *active += 1;
-    TestCommandPermit
-}
-
-#[cfg(test)]
 pub(crate) fn run_test_command_with_timeout(
     mut command: std::process::Command,
     stdin_payload: Option<&[u8]>,
@@ -85,10 +44,6 @@ pub(crate) fn run_test_command_with_timeout(
 ) -> (i32, String, String, u64, bool) {
     use std::io::{Read, Seek, SeekFrom, Write};
 
-    // libtest defaults to host logical CPU count. On very high-core hosts that
-    // can otherwise launch hundreds of Git/shell fixtures at once and turn
-    // scheduler/I/O contention into false timeout failures.
-    let _permit = acquire_test_command_permit();
     let start = Instant::now();
     if let Some(stdin_payload) = stdin_payload {
         let mut stdin_source = match tempfile::tempfile() {

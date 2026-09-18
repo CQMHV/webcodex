@@ -49,12 +49,10 @@ successive continuation Attempts. Rust projection and capability tests use
 On high-core developer or shared hosts, prefer `bash scripts/test_server.sh` for the
 complete Server package lane. It runs the same package command as ordinary Linux CI
 (`cargo test --locked -p webcodex`) but, when `RUST_TEST_THREADS` is unset, caps
-libtest fan-out at the smaller of the detected logical CPU count and 32. The test
-harness independently caps its own Git/shell child-process fan-out at 32, so direct
-`cargo test` remains bounded even when libtest sees many logical CPUs. The wrapper
-still avoids scheduling hundreds of integration tests at once and leaves CI behavior
-unchanged. Set `RUST_TEST_THREADS` explicitly when intentionally testing another
-concurrency level.
+libtest fan-out at the smaller of the detected logical CPU count and 32. This avoids
+scheduling hundreds of Git/shell/process-heavy integration tests at once while keeping
+plain Cargo behavior and CI unchanged. Set `RUST_TEST_THREADS` explicitly when
+intentionally testing another concurrency level.
 
 ## Explicit High-Cost Local Evidence
 
