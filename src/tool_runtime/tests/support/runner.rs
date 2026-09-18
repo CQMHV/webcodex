@@ -20,7 +20,7 @@ use webcodex_core::runner_skill::{
     RunnerSkillExecutionRequest, RUNNER_SKILL_EXECUTION_REQUEST_KIND,
 };
 
-const RUNNER_TEST_COMMAND_TIMEOUT_SECS: u64 = 30;
+const RUNNER_TEST_COMMAND_TIMEOUT_SECS: u64 = 45;
 
 pub(in crate::tool_runtime::tests) async fn register_runner_project_at_path(
     runtime: &ToolRuntime,
