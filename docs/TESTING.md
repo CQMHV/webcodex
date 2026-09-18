@@ -44,6 +44,16 @@ successive continuation Attempts. Rust projection and capability tests use
 `cargo test --locked -p webcodex --lib goal`, and
 `cargo test --locked -p webcodex --lib agent_continuation`.
 
+## Full Local Server Suite
+
+On high-core developer or shared hosts, prefer `bash scripts/test_server.sh` for the
+complete Server package lane. It runs the same package command as ordinary Linux CI
+(`cargo test --locked -p webcodex`) but, when `RUST_TEST_THREADS` is unset, caps
+libtest fan-out at the smaller of the detected logical CPU count and 32. This avoids
+starting hundreds of Git/shell/process-heavy local integration fixtures at once while
+keeping focused Cargo commands and CI behavior unchanged. Set `RUST_TEST_THREADS`
+explicitly when intentionally testing another concurrency level.
+
 ## Explicit High-Cost Local Evidence
 
 Ordinary `cargo test` and ordinary CI intentionally skip ignored timing/real-process
