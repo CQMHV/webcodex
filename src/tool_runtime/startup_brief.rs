@@ -11,9 +11,11 @@ use serde_json::{json, Value};
 use std::collections::BTreeSet;
 
 use super::continuation_feedback::EXPLORATION_CONTINUITY_ACTION;
+#[cfg(test)]
+use super::project_instructions::INSTRUCTION_CANDIDATE_PATHS;
 use super::project_instructions::{
     ProjectInstructionFile, ProjectInstructionsSnapshot, ProjectInstructionsSummarySnapshot,
-    INSTRUCTION_CANDIDATE_PATHS, MAX_LINES_PER_FILE,
+    MAX_LINES_PER_FILE,
 };
 use super::project_resolution::ResolvedProject;
 use super::session_context::canonical_repository_key;
@@ -772,7 +774,8 @@ fn instruction_snapshots_match(
             .iter()
             .zip(&previous.files)
             .all(|(left, right)| {
-                left.path == right.path
+                left.source_scope == right.source_scope
+                    && left.path == right.path
                     && left.fingerprint == right.fingerprint
                     && left.truncated == right.truncated
             })
@@ -782,23 +785,43 @@ fn changed_instruction_sources(
     current: &ProjectInstructionsSnapshot,
     previous: Option<&ProjectInstructionsSummarySnapshot>,
 ) -> Vec<String> {
-    let mut changed = Vec::new();
-    for candidate in INSTRUCTION_CANDIDATE_PATHS {
-        let current_file = current.files.iter().find(|file| file.path == *candidate);
-        let previous_file = previous
-            .and_then(|snapshot| snapshot.files.iter().find(|file| file.path == *candidate));
-        let differs = match (current_file, previous_file) {
-            (Some(left), Some(right)) => {
-                left.fingerprint != right.fingerprint || left.truncated != right.truncated
+    let mut identities: Vec<_> = current
+        .files
+        .iter()
+        .map(|file| (file.source_scope, file.path.as_str()))
+        .collect();
+    if let Some(previous) = previous {
+        for file in &previous.files {
+            let identity = (file.source_scope, file.path.as_str());
+            if !identities.contains(&identity) {
+                identities.push(identity);
             }
-            (None, None) => false,
-            _ => true,
-        };
-        if differs {
-            changed.push((*candidate).to_string());
         }
     }
-    changed
+
+    identities
+        .into_iter()
+        .filter_map(|(scope, path)| {
+            let current_file = current
+                .files
+                .iter()
+                .find(|file| file.source_scope == scope && file.path == path);
+            let previous_file = previous.and_then(|snapshot| {
+                snapshot
+                    .files
+                    .iter()
+                    .find(|file| file.source_scope == scope && file.path == path)
+            });
+            let differs = match (current_file, previous_file) {
+                (Some(left), Some(right)) => {
+                    left.fingerprint != right.fingerprint || left.truncated != right.truncated
+                }
+                (None, None) => false,
+                _ => true,
+            };
+            differs.then(|| path.to_string())
+        })
+        .collect()
 }
 
 fn instruction_source_projection(
@@ -833,13 +856,18 @@ fn instruction_source_projection(
         (None, false)
     };
     *projection_truncated |= content_truncated;
-    let read_more = if content_truncated {
+    let read_more = if content_truncated
+        && file.source_scope == super::project_instructions::InstructionSourceScope::Project
+    {
         let returned = content.as_deref().unwrap_or_default();
         projected_read_more(&file.path, returned)
+    } else if content_truncated {
+        Value::Null
     } else {
         serde_json::to_value(&file.read_more).unwrap_or(Value::Null)
     };
     json!({
+        "source_scope": file.source_scope,
         "path": file.path,
         "fingerprint": file.fingerprint,
         "truncated": file.truncated || content_truncated,
@@ -1813,6 +1841,8 @@ mod tests {
                 .iter()
                 .enumerate()
                 .map(|(index, path)| LoadedInstructionCandidate {
+                    source_scope:
+                        webcodex_core::project_instructions::InstructionSourceScope::Project,
                     path: (*path).to_string(),
                     content: format!(
                         "# Rule source {index}\n## Required\n{}\n",
@@ -1824,6 +1854,44 @@ mod tests {
                 .collect(),
             true,
         )
+    }
+
+    #[test]
+    fn instruction_delta_schema_accepts_replaced_runner_sources_and_project_changes() {
+        use webcodex_core::project_instructions::InstructionSourceScope;
+        let snapshot = |version: &str| {
+            let mut candidates = (0..16)
+                .map(|index| LoadedInstructionCandidate {
+                    source_scope: InstructionSourceScope::Runner,
+                    path: format!("runner/{index}/{version}.md"),
+                    content: version.to_string(),
+                    total_lines: 1,
+                    full_sha256: None,
+                })
+                .collect::<Vec<_>>();
+            candidates.extend(INSTRUCTION_CANDIDATE_PATHS.iter().map(|path| {
+                LoadedInstructionCandidate {
+                    source_scope: InstructionSourceScope::Project,
+                    path: (*path).to_string(),
+                    content: version.to_string(),
+                    total_lines: 1,
+                    full_sha256: None,
+                }
+            }));
+            ProjectInstructionsSnapshot::from_candidates(candidates, true)
+        };
+        let previous = snapshot("old").to_summary();
+        let current = snapshot("new");
+        let changed = changed_instruction_sources(&current, Some(&previous));
+        assert_eq!(changed.len(), 37);
+        let schema = crate::tool_runtime::registry::output_schema_for_tool("work_on_project");
+        let changed_schema = &schema["properties"]["output"]["properties"]["instructions"]
+            ["properties"]["changed_sources"];
+        assert!(
+            changed_schema.is_object(),
+            "work_on_project instruction delta schema"
+        );
+        validate_schema_instance_for_test(&json!(changed), changed_schema).unwrap();
     }
 
     #[test]
