@@ -35,6 +35,10 @@ const requiredAssets = [
   "runtime_operations.js",
   "runtime_navigation.js",
   "runtime_collaboration.js",
+  "runtime_product_view.js",
+  "runtime_product.js",
+  "runtime_extensions.js",
+  "runtime_workspace.js",
   "runtime.html",
   "runtime.js",
   "runtime.css",
@@ -68,7 +72,7 @@ async function assertRequiredAssets(outputDirectory) {
     assert.equal((await stat(resolve(outputDirectory, asset))).isFile(), true);
   }
   const runtimeHtml = await readFile(resolve(outputDirectory, "runtime.html"), "utf8");
-  assert.match(runtimeHtml, /WebCodex Runtime Console/);
+  assert.match(runtimeHtml, /WebCodex — Workspace/);
   assert.match(runtimeHtml, /runtime-device-select/);
   assert.match(runtimeHtml, /runtime-project-list/);
   assert.equal(runtimeHtml.includes("runtime-project-" + "select"), false);
@@ -173,7 +177,7 @@ async function assertRequiredAssets(outputDirectory) {
   await exec(process.execPath, ["--check", resolve(outputDirectory, "runtime.js")]);
   const runtimeStyles = await readFile(resolve(outputDirectory, "runtime.css"), "utf8");
   assert.match(runtimeStyles, /max-width:\s*900px/);
-  assert.match(runtimeStyles, /min-width:\s*1280px/);
+  assert.match(runtimeStyles, /min-width:\s*1600px/);
   assert.match(runtimeStyles, /safe-area-inset-bottom/);
   assert.match(runtimeStyles, /safe-area-inset-top/);
   assert.match(runtimeStyles, /prefers-reduced-motion/);
@@ -250,6 +254,10 @@ async function copySources(sourceDirectory) {
     "runtime_operations.ts",
     "runtime_navigation.ts",
     "runtime_collaboration.ts",
+    "runtime_product_view.ts",
+    "runtime_product.ts",
+    "runtime_extensions.ts",
+    "runtime_workspace.ts",
     "runtime.css",
     "runtime.html",
     "admin.ts",

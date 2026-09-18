@@ -130,6 +130,7 @@ export function createWindowCard(
   if (!key) return null;
   const button = document.createElement("button");
   button.type = "button";
+  button.dataset.action = "open-window";
   button.className = "runtime-window-card" + (key === selectedWindowKey ? " selected" : "");
   if (key === selectedWindowKey) button.setAttribute("aria-current", "true");
   const head = document.createElement("div");
@@ -144,6 +145,10 @@ export function createWindowCard(
   head.appendChild(title);
   head.appendChild(active);
   button.appendChild(head);
+  if (row.last_project_name && row.last_project_name !== "—") {
+    const project = document.createElement("p"); project.className = "window-project-label";
+    project.textContent = String(row.last_project_name); button.appendChild(project);
+  }
   const call = document.createElement("span");
   call.className = "muted small";
   call.textContent = row?.last_tool_call_at_ms
@@ -226,6 +231,7 @@ export function renderWindowLinkedSessions(
   for (const session of linkedSessions) {
     const button = document.createElement("button");
     button.type = "button";
+    button.dataset.action = "open-linked-session";
     button.className = "window-session-card";
     const title = document.createElement("strong");
     title.textContent = String(session?.title || session?.workflow_session_id || translate("Workflow Session", language));

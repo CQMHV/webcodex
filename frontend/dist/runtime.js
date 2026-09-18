@@ -831,6 +831,116 @@ function runtimeWindowActivityLabel(timestampMs, nowMs, language) {
 
 const LANGUAGE_STORAGE_KEY = "webcodex.runtime.language.v1";
 const RUNTIME_ZH_TEXT = {
+    "Updates automatically": "自动更新",
+    "Open a Window to see its project and Workflow Sessions.": "打开窗口，查看关联项目与工作会话。",
+    "Window Details": "窗口详情",
+    "Tool diagnostics": "工具诊断",
+    "Observed": "已观察到",
+    "In progress": "进行中",
+    "Last activity": "最近活动",
+    "WebCodex — Workspace": "WebCodex — 工作区",
+    "Your projects and work, in one place.": "项目与工作，尽在此处。",
+    "Workspace": "工作区",
+    "WebCodex Ready": "WebCodex 已就绪",
+    "Home": "首页",
+    "Access key": "访问密钥",
+    "Use your access key to open this workspace.": "输入访问密钥，打开工作区。",
+    "Remember for this tab": "在此标签页保持登录",
+    "Advanced": "高级",
+    "The key stays in this tab and is cleared when you lock the workspace or close the tab.": "密钥仅保留在此标签页，锁定工作区或关闭标签页时清除。",
+    "Add Project": "添加项目",
+    "Open Project": "打开项目",
+    "All Projects": "全部项目",
+    "Search projects": "搜索项目",
+    "Recent Projects": "最近项目",
+    "Recent Activity": "最近活动",
+    "Current": "当前项目",
+    "Git branch": "Git 分支",
+    "active sessions": "个活跃会话",
+    "Running": "运行中",
+    "Not checked": "尚未检查",
+    "No activity observed yet": "尚未观察到活动",
+    "No projects yet": "尚无项目",
+    "No matching projects": "没有匹配的项目",
+    "No Git repository": "非 Git 项目",
+    "Loading projects…": "正在加载项目…",
+    "Projects unavailable. Refresh to try again.": "暂时无法加载项目，请刷新重试。",
+    "Activity unavailable. Refresh to try again.": "暂时无法加载活动，请刷新重试。",
+    "Reading project files": "查看项目文件",
+    "Editing files": "编辑文件",
+    "Reviewing changes": "检查更改",
+    "Running checks": "运行检查",
+    "Running tasks": "运行任务",
+    "Workspace activity": "工作区活动",
+    "Project folder": "项目文件夹",
+    "Absolute folder path on the selected Runner": "所选 Runner 上的绝对文件夹路径",
+    "Adding project…": "正在添加项目…",
+    "The result could not be confirmed. Refresh Projects before trying again.": "无法确认操作结果，请刷新项目列表后再重试。",
+    "Project could not be added. Check the folder and Runner access.": "未能添加项目，请检查文件夹及 Runner 访问权限。",
+    "Could not refresh. Check the connection and try again.": "暂时无法刷新，请检查连接后重试。",
+    "Extensions": "扩展",
+    "Instructions": "指令",
+    "Global instructions": "全局指令",
+    "Available": "可用",
+    "Unavailable": "暂不可用",
+    "Registered": "已登记",
+    "Nothing installed yet": "尚未安装",
+    "No instructions configured": "尚未配置指令",
+    "Add a project to manage its extensions.": "添加项目后即可管理扩展。",
+    "Showing recent results": "显示最近的结果",
+    "Reload": "重新加载",
+    "Reload could not be confirmed. Refresh before trying again.": "无法确认重新加载的结果，请刷新后再重试。",
+    "tools": "个工具",
+    "Windows": "窗口",
+    "Open": "打开",
+    "Close": "关闭",
+    "Workspace status": "工作区状态",
+    "Enter your access key.": "请输入访问密钥。",
+    "Your access key is no longer valid. Connect again.": "访问密钥已失效，请重新连接。",
+    "Open a project, then choose a Workflow Session.": "打开项目，然后选择工作会话。",
+    "About Session messages": "关于会话消息",
+    "Session messages are not available with this access key.": "当前访问密钥无法查看会话消息。",
+    "Session activity and associated Windows are available in Details.": "会话活动和关联窗口可在详情中查看。",
+    "Session refresh unavailable. Refresh to try again.": "无法刷新会话。请点击刷新重试。",
+    "Loading work Sessions…": "正在加载工作会话…",
+    "Project overview": "项目概览",
+    "Work Sessions": "工作会话",
+    "Diagnostics & Agents": "诊断与 Agent",
+    "Choose where to work": "选择工作项目",
+    "Review observed work, then choose a Session to continue.": "查看已观测的工作，再选择会话继续。",
+    "Find a project, review recent work, or inspect client activity.": "查找项目、查看近期工作，或检查客户端活动。",
+    "Runner disconnected. Open diagnostics to check the connection.": "运行器已断开。请打开诊断检查连接。",
+    "Needs attention": "待处理",
+    "No attention requests in loaded Sessions.": "已加载的会话中没有待处理请求。",
+    "Working now": "正在工作",
+    "No active work observed in loaded Sessions.": "已加载的会话中未观测到正在执行的工作。",
+    "Recently closed": "最近关闭",
+    "No closed Sessions in this retained view.": "此留存视图中没有已关闭的会话。",
+    "Recent work Sessions": "近期工作会话",
+    "Choose a project to load its work Sessions.": "选择项目以加载其工作会话。",
+    "Untitled Session": "未命名会话",
+    "More Sessions are available in the sidebar.": "可在侧边栏查看其他会话。",
+    "Loaded evidence only; counts may be bounded.": "仅显示已加载的证据；计数可能受留存范围限制。",
+    "Client calls, separate from work Sessions. Observation does not mean the host is online.": "客户端调用，与工作会话分别展示。观测到活动不代表主机在线。",
+    "Browse Window activity": "浏览窗口活动",
+    "Observed work": "已观测的工作",
+    "Running Jobs": "运行中的作业",
+    "Files in retained edits": "留存编辑涉及的文件",
+    "No file edits in loaded activity.": "已加载的活动中没有文件编辑。",
+    "Recent Job evidence": "近期作业证据",
+    "No Jobs in loaded activity.": "已加载的活动中没有作业。",
+    "Recently completed": "最近完成",
+    "No successful completions in loaded activity.": "已加载的活动中没有成功完成的记录。",
+    "Work summary": "工作摘要",
+    "Retained evidence, not a live Git diff. Open Context for activity and linked Windows.": "留存证据，并非实时 Git 差异。打开上下文查看活动和关联窗口。",
+    "Work Sessions in this Project": "此项目中的工作会话",
+    "Commands · ⇧⌘ / Ctrl K": "命令 · ⇧⌘ / Ctrl K",
+    "Commands": "命令",
+    "Find a destination": "查找目标",
+    "Destinations": "导航目标",
+    "Close commands": "关闭命令菜单",
+    "No matching destinations.": "没有匹配的目标。",
+    "partial scan": "扫描不完整",
     "Your workspace": "你的工作空间",
     "Pick up where work happens": "从这里继续工作",
     "Find a project": "查找项目",
@@ -901,7 +1011,7 @@ const RUNTIME_ZH_TEXT = {
     "No Window activity recorded for this project.": "此项目没有记录到窗口活动。",
     "Window activity requires runtime:read. Project-scoped Session access remains available.": "查看窗口活动需要 runtime:read 权限；仍可访问项目范围内的会话。",
     "Sessions": "会话",
-    "Workflow Sessions": "工作流会话",
+    "Workflow Sessions": "工作会话",
     "No retained Workflow Sessions for this project.": "此项目没有保留的工作流会话。",
     "Working & Recently Updated Sessions": "正在工作与最近更新的会话",
     "Working and recently updated Workflow Sessions": "正在工作与最近更新的工作流会话",
@@ -1088,7 +1198,7 @@ const RUNTIME_ZH_TEXT = {
     "Could not refresh Workflow Session detail.": "无法刷新工作流会话详情。",
     "Enter a runtime Bearer credential.": "请输入运行时 Bearer 凭证。",
     "Searching…": "正在搜索…",
-    "Refreshing…": "正在刷新…",
+    "Refreshing…": "刷新中…",
     "Refreshed": "已刷新",
     "Refresh failed · showing previous data": "刷新失败 · 正在显示之前的数据",
     "Refreshing runtime": "正在刷新运行时",
@@ -1270,7 +1380,7 @@ const ZH_COUNT_LABELS = {
     "todo": "个待办",
     "question": "个问题",
     "guidance": "条指导",
-    "online": "台在线",
+    "online": "在线",
     "stale": "台状态过期",
     "unavailable": "台不可用",
     "RUNNING": "个运行中",
@@ -1739,6 +1849,7 @@ function createWindowCard(row, selectedWindowKey, onSelect, now = Date.now(), la
         return null;
     const button = document.createElement("button");
     button.type = "button";
+    button.dataset.action = "open-window";
     button.className = "runtime-window-card" + (key === selectedWindowKey ? " selected" : "");
     if (key === selectedWindowKey)
         button.setAttribute("aria-current", "true");
@@ -1754,6 +1865,12 @@ function createWindowCard(row, selectedWindowKey, onSelect, now = Date.now(), la
     head.appendChild(title);
     head.appendChild(active);
     button.appendChild(head);
+    if (row.last_project_name && row.last_project_name !== "—") {
+        const project = document.createElement("p");
+        project.className = "window-project-label";
+        project.textContent = String(row.last_project_name);
+        button.appendChild(project);
+    }
     const call = document.createElement("span");
     call.className = "muted small";
     call.textContent = row?.last_tool_call_at_ms
@@ -1825,6 +1942,7 @@ function renderWindowLinkedSessions(sessionsNode, linkedSessions, onOpenSession,
     for (const session of linkedSessions) {
         const button = document.createElement("button");
         button.type = "button";
+        button.dataset.action = "open-linked-session";
         button.className = "window-session-card";
         const title = document.createElement("strong");
         title.textContent = String(session?.title || session?.workflow_session_id || translate("Workflow Session", language));
@@ -2353,14 +2471,14 @@ function resolvedAppearance(preference, prefersLight) {
     return prefersLight ? "light" : "dark";
 }
 function workspaceViewPreference(value) {
-    return value === "operations" || value === "windows" ? value : "sessions";
+    return value === "sessions" || value === "operations" || value === "windows" || value === "projects" || value === "activity" || value === "extensions" ? value : "home";
 }
 function loadWorkspaceViewPreference() {
     try {
         return workspaceViewPreference(window.localStorage.getItem(WORKSPACE_VIEW_STORAGE_KEY));
     }
     catch {
-        return "sessions";
+        return "home";
     }
 }
 function persistWorkspaceViewPreference(view) {
@@ -2921,6 +3039,7 @@ function renderProjectSelectorTree(deviceSelect, projectList, sessionsPanel, opt
                 catch { }
             });
             const row = document.createElement("summary");
+            row.dataset.action = "select-project";
             row.className = "project-row" + (project.id === options.selectedProject ? " selected" : "");
             if (project.id === options.selectedProject)
                 row.setAttribute("aria-current", "true");
@@ -3431,6 +3550,854 @@ function renderCollaborationMessageCards(node, messages, options) {
         appendMessage(message, 0, false);
 }
 
+function productNode(tag, text = "", className = "") {
+    const node = document.createElement(tag);
+    node.textContent = text;
+    node.className = className;
+    return node;
+}
+function productButton(label, action, className = "btn secondary") {
+    const node = productNode("button", label, className);
+    node.type = "button";
+    node.setAttribute("aria-label", label);
+    node.addEventListener("click", action);
+    return node;
+}
+function productName(project) {
+    return project.name || project.path?.split(/[\\/]/).filter(Boolean).pop() || project.id || "—";
+}
+function productTime(timestamp, language, now = Date.now()) {
+    if (typeof timestamp !== "number" || !Number.isFinite(timestamp) || timestamp <= 0)
+        return translate("No activity observed yet", language);
+    const seconds = Math.min(0, Math.round((timestamp - now) / 1000));
+    const formatter = new Intl.RelativeTimeFormat(language === "zh-CN" ? "zh-CN" : "en", { numeric: "auto" });
+    if (seconds > -60)
+        return formatter.format(seconds, "second");
+    if (seconds > -3600)
+        return formatter.format(Math.round(seconds / 60), "minute");
+    if (seconds > -86400)
+        return formatter.format(Math.round(seconds / 3600), "hour");
+    return formatter.format(Math.round(seconds / 86400), "day");
+}
+function productTitle(value) {
+    const text = String(value || "").trim().split(/\r?\n/).find(Boolean) || "Untitled Session";
+    return text.length > 110 ? text.slice(0, 109) + "…" : text;
+}
+function productActivity(activity, language) {
+    if (!activity)
+        return translate("No activity observed yet", language);
+    if (typeof activity.summary === "string" && activity.summary)
+        return productTitle(activity.summary);
+    const kind = String(activity.kind || activity.tool_name || activity.tool || "");
+    const label = /Explor|read|search|inspect/i.test(kind) ? "Reading project files"
+        : /Edit|write|patch/i.test(kind) ? "Editing files" : /Validat|test|check|build/i.test(kind) ? "Running checks"
+            : /Review|changes|diff/i.test(kind) ? "Reviewing changes" : /Running|job|process/i.test(kind) ? "Running tasks" : "Workspace activity";
+    return translate(label, language);
+}
+function createProductProjectRow(project, options) {
+    const tr = (value) => translate(value, options.language);
+    const selected = project.id === options.selected;
+    const row = productNode("article", "", "product-project-row" + (selected ? " selected" : ""));
+    row.setAttribute("aria-label", productName(project));
+    row.appendChild(productNode("span", productName(project).slice(0, 2).toUpperCase(), "product-avatar"));
+    const body = productNode("div", "", "product-project-main");
+    const title = productNode("div", "", "product-project-title");
+    title.appendChild(productNode("h3", productName(project)));
+    if (selected)
+        title.appendChild(productNode("span", tr("Current"), "product-badge"));
+    body.appendChild(title);
+    const path = productNode("span", project.path || "—", "product-path");
+    path.title = project.path || "";
+    body.appendChild(path);
+    const meta = productNode("div", "", "product-project-meta");
+    const branch = productNode("span", "—");
+    branch.title = tr("Git branch");
+    meta.appendChild(branch);
+    if (project.connected && options.git)
+        options.git(project.id, branch);
+    meta.appendChild(productNode("span", project.sessions ? String(project.sessions.active_sessions ?? 0) + (project.sessions.sessions_truncated ? "+" : "") + " " + tr("active sessions") : tr("Not checked")));
+    meta.appendChild(productNode("span", productTime(project.sessions?.latest_updated_at ? project.sessions.latest_updated_at * 1000 : null, options.language)));
+    body.appendChild(meta);
+    row.appendChild(body);
+    const open = productButton(tr("Open"), () => options.onOpen(project.client_id, project.id));
+    open.setAttribute("aria-label", tr("Open Project") + " " + productName(project));
+    open.dataset.action = "open-project";
+    row.appendChild(open);
+    return row;
+}
+function productDialog(title, language) {
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = productNode("dialog", "", "product-dialog");
+    dialog.setAttribute("aria-label", title);
+    const close = () => { dialog.close(); dialog.remove(); if (previous?.isConnected)
+        previous.focus(); };
+    const header = productNode("header");
+    header.appendChild(productNode("h2", title));
+    header.appendChild(productButton(translate("Close", language), close));
+    dialog.appendChild(header);
+    const body = productNode("div", "", "product-dialog-body");
+    dialog.appendChild(body);
+    dialog.addEventListener("cancel", event => { event.preventDefault(); close(); });
+    document.body.appendChild(dialog);
+    dialog.showModal();
+    return { dialog, body, close };
+}
+
+// UI state only. Project registration, authorization and Git remain canonical API operations.
+class ProductWorkspace {
+    constructor(services) {
+        this.services = services;
+        this.generation = 0;
+        this.requests = new Set();
+        this.gitCache = new Map();
+        this.gitPending = new Map();
+        this.gitRunning = 0;
+        this.gitQueue = [];
+        this.dialogs = new Set();
+        this.query = "";
+        this.runner = "";
+        this.projectLanguage = "";
+        this.projectSignature = "";
+        this.projectList = null;
+    }
+    reset() {
+        this.generation++;
+        for (const request of this.requests)
+            request.abort();
+        this.requests.clear();
+        this.gitCache.clear();
+        this.gitPending.clear();
+        for (const dialog of this.dialogs)
+            dialog.close();
+        this.dialogs.clear();
+        this.query = "";
+        this.runner = "";
+        this.projectLanguage = "";
+        this.projectSignature = "";
+        this.projectList = null;
+        document.getElementById("runtime-projects-content")?.replaceChildren();
+        document.getElementById("runtime-activity-content")?.replaceChildren();
+    }
+    invalidateGit() { this.gitCache.clear(); }
+    async git(project) {
+        const cached = this.gitCache.get(project);
+        if (cached && Date.now() - cached.at < 30000)
+            return cached.value;
+        const pending = this.gitPending.get(project);
+        if (pending)
+            return pending;
+        const generation = this.generation;
+        const task = (async () => {
+            if (this.gitRunning >= 3)
+                await new Promise(resolve => this.gitQueue.push(resolve));
+            this.gitRunning++;
+            const request = new AbortController();
+            this.requests.add(request);
+            try {
+                if (generation !== this.generation)
+                    return null;
+                const result = await this.services.post("project-git", { project }, request.signal);
+                if (generation !== this.generation || request.signal.aborted)
+                    return null;
+                if (result?.status === 401) {
+                    this.services.unauthorized();
+                    return null;
+                }
+                const value = result?.ok ? result.data : null;
+                this.gitCache.set(project, { value, at: Date.now() });
+                return value;
+            }
+            finally {
+                this.requests.delete(request);
+                this.gitRunning--;
+                this.gitQueue.shift()?.();
+                if (generation === this.generation)
+                    this.gitPending.delete(project);
+            }
+        })();
+        this.gitPending.set(project, task);
+        return task;
+    }
+    attachGit(project, target) {
+        const generation = this.generation;
+        const language = this.services.context().language;
+        void this.git(project).then(value => {
+            if (generation !== this.generation || !target.isConnected)
+                return;
+            target.textContent = value?.branch || translate(value?.non_git_project ? "No Git repository" : "Not checked", language);
+            target.title = value?.branch || translate("Git branch", language);
+        });
+    }
+    renderProjects() {
+        const root = document.getElementById("runtime-projects-content");
+        if (!root)
+            return;
+        const context = this.services.context();
+        const tr = (text) => translate(text, context.language);
+        if (!this.projectList || !root.contains(this.projectList) || this.projectLanguage !== context.language) {
+            root.replaceChildren();
+            this.projectLanguage = context.language;
+            this.projectSignature = "";
+            const heading = productNode("header", "", "product-page-heading");
+            heading.appendChild(productNode("h2", tr("Projects")));
+            const add = productButton(tr("Add Project"), () => this.addProject(), "btn primary");
+            add.dataset.action = "add-project";
+            heading.appendChild(add);
+            root.appendChild(heading);
+            const filters = productNode("div", "", "product-filters");
+            const runnerLabel = productNode("label", "Runner");
+            runnerLabel.htmlFor = "product-project-runner";
+            const select = productNode("select");
+            select.id = "product-project-runner";
+            select.setAttribute("aria-label", "Runner");
+            select.appendChild(new Option(tr("All Runners"), ""));
+            for (const runner of context.runners)
+                select.appendChild(new Option(runner.client_id, runner.client_id));
+            select.value = this.runner;
+            select.addEventListener("change", () => { this.runner = select.value; this.renderProjects(); });
+            const searchLabel = productNode("label", tr("Search projects"));
+            searchLabel.htmlFor = "product-project-query";
+            const search = productNode("input");
+            search.type = "search";
+            search.id = "product-project-query";
+            search.maxLength = 200;
+            search.value = this.query;
+            search.addEventListener("input", () => { this.query = search.value; this.renderProjects(); });
+            filters.append(runnerLabel, select, searchLabel, search);
+            root.appendChild(filters);
+            this.projectList = productNode("div", "", "product-project-list");
+            root.appendChild(this.projectList);
+        }
+        const signature = JSON.stringify([context.projects, context.selectedProject, context.available, this.query, this.runner]);
+        if (signature === this.projectSignature)
+            return;
+        this.projectSignature = signature;
+        const activeName = this.projectList.contains(document.activeElement) ? document.activeElement?.getAttribute("aria-label") : null;
+        this.projectList.replaceChildren();
+        const rows = context.projects.filter(project => (!this.runner || this.runner === project.client_id) && `${productName(project)} ${project.path || ""}`.toLocaleLowerCase().includes(this.query.trim().toLocaleLowerCase()))
+            .sort((a, b) => (b.sessions?.latest_updated_at || 0) - (a.sessions?.latest_updated_at || 0));
+        let lastRunner = "";
+        for (const project of rows) {
+            if (context.runners.length > 1 && project.client_id !== lastRunner) {
+                this.projectList.appendChild(productNode("p", "Runner · " + project.client_id, "product-runner-label"));
+                lastRunner = project.client_id;
+            }
+            this.projectList.appendChild(createProductProjectRow(project, { language: context.language, selected: context.selectedProject, onOpen: this.services.onProject, git: (project, target) => this.attachGit(project, target) }));
+        }
+        if (!rows.length)
+            this.projectList.appendChild(productNode("p", tr(!context.available ? "Projects unavailable. Refresh to try again." : this.query || this.runner ? "No matching projects" : "No projects yet"), "product-empty"));
+        if (activeName)
+            Array.from(this.projectList.querySelectorAll("button")).find(value => value.getAttribute("aria-label") === activeName)?.focus();
+    }
+    addProject() {
+        const context = this.services.context();
+        const tr = (text) => translate(text, context.language);
+        const generation = this.generation;
+        const popup = productDialog(tr("Add Project"), context.language);
+        this.dialogs.add(popup);
+        const form = productNode("form");
+        const request = new AbortController();
+        const runnerLabel = productNode("label", "Runner");
+        runnerLabel.htmlFor = "product-add-runner";
+        const runner = productNode("select");
+        runner.id = "product-add-runner";
+        runner.required = true;
+        for (const row of context.runners)
+            runner.appendChild(new Option(row.client_id, row.client_id));
+        if (this.runner)
+            runner.value = this.runner;
+        const pathLabel = productNode("label", tr("Project folder"));
+        pathLabel.htmlFor = "product-add-path";
+        const path = productNode("input");
+        path.id = "product-add-path";
+        path.required = true;
+        path.maxLength = 4096;
+        path.autocomplete = "off";
+        path.spellcheck = false;
+        path.title = tr("Project folder");
+        path.placeholder = tr("Absolute folder path on the selected Runner");
+        const message = productNode("p", "", "product-form-message");
+        message.setAttribute("role", "status");
+        const submit = productNode("button", tr("Add Project"), "btn primary");
+        submit.type = "submit";
+        submit.disabled = !context.runners.length;
+        form.append(runnerLabel, runner, pathLabel, path, message, submit);
+        popup.body.appendChild(form);
+        let pending = false;
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (pending || !path.value.trim() || !runner.value || generation !== this.generation)
+                return;
+            pending = true;
+            submit.disabled = true;
+            runner.disabled = true;
+            path.disabled = true;
+            this.requests.add(request);
+            message.textContent = tr("Adding project…");
+            try {
+                const result = await this.services.registerProject({ client_id: runner.value, path: path.value.trim() }, request.signal);
+                if (generation !== this.generation || request.signal.aborted || !popup.dialog.isConnected)
+                    return;
+                if (result?.status === 401) {
+                    this.services.unauthorized();
+                    return;
+                }
+                if (result?.ok && result.data?.success === true) {
+                    popup.close();
+                    this.dialogs.delete(popup);
+                    this.services.refresh();
+                    return;
+                }
+                message.textContent = tr(result?.status === 0 || result === null ? "The result could not be confirmed. Refresh Projects before trying again." : "Project could not be added. Check the folder and Runner access.");
+                message.setAttribute("role", "alert");
+                // No automatic write replay, including after transport failure.
+            }
+            finally {
+                this.requests.delete(request);
+                pending = false;
+                if (generation === this.generation && popup.dialog.isConnected) {
+                    submit.disabled = false;
+                    runner.disabled = false;
+                    path.disabled = false;
+                }
+            }
+        });
+        path.focus();
+    }
+    renderActivity() {
+        const root = document.getElementById("runtime-activity-content");
+        if (!root)
+            return;
+        const context = this.services.context();
+        const tr = (text) => translate(text, context.language);
+        root.replaceChildren();
+        const heading = productNode("header", "", "product-page-heading");
+        heading.appendChild(productNode("h2", tr("Activity")));
+        root.appendChild(heading);
+        const rows = context.sessions.map(session => ({ at: Number(session.updated_at) * 1000, kind: "session", value: session })).concat(context.windows.map(window => ({ at: window.last_meaningful_activity_at_ms || window.last_seen_at_ms, kind: "window", value: window })))
+            .sort((a, b) => b.at - a.at).slice(0, 40);
+        for (const row of rows) {
+            const entry = productButton("", () => row.kind === "session" ? this.services.onSession(row.value) : this.services.onWindow(row.value.client_window_key), "product-activity-entry");
+            const body = productNode("div");
+            body.appendChild(productNode("strong", row.kind === "session" ? productTitle(row.value.title) : tr("Windows") + " · " + String(row.value.client_window_key).slice(-12)));
+            body.appendChild(productNode("span", row.kind === "session" ? productActivity(row.value.current_activity || row.value.last_activity, context.language) : productName(context.projects.find(project => project.id === row.value.last_project) || {}), "muted"));
+            entry.setAttribute("aria-label", body.textContent || tr("Activity"));
+            entry.append(body, productNode("time", productTime(row.at, context.language)));
+            root.appendChild(entry);
+        }
+        if (!rows.length)
+            root.appendChild(productNode("p", tr(context.available ? "No activity observed yet" : "Activity unavailable. Refresh to try again."), "product-empty"));
+    }
+}
+
+const PRODUCT_EXTENSION_TABS = ["instructions", "skills", "plugins"];
+class ProductExtensions {
+    constructor(services) {
+        this.services = services;
+        this.project = "";
+        this.tab = "instructions";
+        this.generation = 0;
+        this.request = null;
+        this.catalog = null;
+        this.failed = false;
+        this.loading = false;
+        this.language = "";
+        this.body = null;
+        this.dialogs = new Set();
+    }
+    reset() {
+        this.generation++;
+        this.request?.abort();
+        this.request = null;
+        for (const dialog of this.dialogs)
+            dialog.close();
+        this.dialogs.clear();
+        this.project = "";
+        this.catalog = null;
+        this.failed = false;
+        this.loading = false;
+        this.body = null;
+        this.language = "";
+        document.getElementById("runtime-extensions-content")?.replaceChildren();
+    }
+    open() {
+        const context = this.services.context();
+        const project = context.projects.some(row => row.id === this.project) ? this.project : context.selectedProject || context.projects[0]?.id || "";
+        if (this.project !== project || this.language !== context.language || !this.body?.isConnected) {
+            this.request?.abort();
+            this.generation++;
+            this.project = project;
+            this.catalog = null;
+            this.language = context.language;
+            this.renderShell();
+            void this.refresh();
+        }
+    }
+    async refresh() {
+        this.request?.abort();
+        const request = new AbortController();
+        this.request = request;
+        const generation = ++this.generation;
+        const project = this.project;
+        this.loading = Boolean(project);
+        this.failed = false;
+        this.catalog = null;
+        this.render();
+        if (!project)
+            return;
+        const result = await this.services.post("extensions", { project }, request.signal);
+        if (generation !== this.generation || request.signal.aborted)
+            return;
+        this.loading = false;
+        if (result?.status === 401) {
+            this.services.unauthorized();
+            return;
+        }
+        this.failed = !result?.ok;
+        this.catalog = result?.ok ? result.data : null;
+        this.render();
+    }
+    renderShell() {
+        const root = document.getElementById("runtime-extensions-content");
+        if (!root)
+            return;
+        const context = this.services.context();
+        const tr = (text) => translate(text, context.language);
+        root.replaceChildren();
+        const heading = productNode("header", "", "product-page-heading");
+        heading.appendChild(productNode("h2", tr("Extensions")));
+        heading.appendChild(productButton(tr("Refresh"), () => { void this.refresh(); }));
+        root.appendChild(heading);
+        const filter = productNode("div", "", "product-filters");
+        const label = productNode("label", tr("Project"));
+        label.htmlFor = "product-extensions-project";
+        const select = productNode("select");
+        select.id = "product-extensions-project";
+        for (const project of context.projects)
+            select.appendChild(new Option(productName(project), project.id));
+        select.value = this.project;
+        select.addEventListener("change", () => { this.project = select.value; void this.refresh(); });
+        filter.append(label, select);
+        root.appendChild(filter);
+        const tabs = productNode("div", "", "product-tabs");
+        tabs.setAttribute("role", "tablist");
+        tabs.setAttribute("aria-label", tr("Extensions"));
+        const selectTab = (tab) => {
+            this.tab = tab;
+            for (const control of Array.from(tabs.querySelectorAll("button"))) {
+                const selected = control.dataset.tab === tab;
+                control.setAttribute("aria-selected", String(selected));
+                control.tabIndex = selected ? 0 : -1;
+            }
+            this.render();
+        };
+        for (const tab of PRODUCT_EXTENSION_TABS) {
+            const control = productButton(tr(tab === "instructions" ? "Instructions" : tab === "skills" ? "Skills" : "Plugins"), () => selectTab(tab), "product-tab");
+            control.id = "product-tab-" + tab;
+            control.dataset.tab = tab;
+            control.setAttribute("role", "tab");
+            control.setAttribute("aria-controls", "product-extensions-panel");
+            control.setAttribute("aria-selected", String(this.tab === tab));
+            control.tabIndex = this.tab === tab ? 0 : -1;
+            control.addEventListener("keydown", event => { if (!['ArrowLeft', 'ArrowRight'].includes(event.key))
+                return; event.preventDefault(); const next = PRODUCT_EXTENSION_TABS[(PRODUCT_EXTENSION_TABS.indexOf(tab) + (event.key === 'ArrowRight' ? 1 : 2)) % 3]; selectTab(next); document.getElementById("product-tab-" + next)?.focus(); });
+            tabs.appendChild(control);
+        }
+        root.appendChild(tabs);
+        this.body = productNode("section");
+        this.body.id = "product-extensions-panel";
+        this.body.setAttribute("role", "tabpanel");
+        root.appendChild(this.body);
+    }
+    render() {
+        if (!this.body)
+            return;
+        const context = this.services.context();
+        const tr = (text) => translate(text, context.language);
+        this.body.replaceChildren();
+        this.body.setAttribute("aria-labelledby", "product-tab-" + this.tab);
+        if (this.loading) {
+            const status = productNode("p", tr("Refreshing…"), "muted");
+            status.setAttribute("role", "status");
+            this.body.appendChild(status);
+            return;
+        }
+        if (this.failed) {
+            const error = productNode("p", tr("Could not refresh. Check the connection and try again."), "error");
+            error.setAttribute("role", "alert");
+            this.body.appendChild(error);
+            return;
+        }
+        if (!this.project) {
+            this.body.appendChild(productNode("p", tr("Add a project to manage its extensions."), "product-empty"));
+            return;
+        }
+        if (!this.catalog)
+            return;
+        if (this.tab === "instructions") {
+            const files = Array.isArray(this.catalog.instructions?.files) ? this.catalog.instructions.files : [];
+            for (const file of files) {
+                const title = file.source_scope === "runner" ? tr("Global instructions") : "Project " + String(file.path).split(/[\\/]/).pop();
+                const row = this.row(title, (file.source_scope === "runner" ? "Runner" : productName(context.projects.find(project => project.id === this.project) || {})) + " · " + tr("Available"));
+                const details = productNode("details");
+                details.append(productNode("summary", tr("Details")), productNode("code", String(file.path)));
+                row.firstElementChild?.appendChild(details);
+                const open = productButton(tr("Open"), () => { void this.openInstruction(file); });
+                open.setAttribute("aria-label", tr("Open") + " " + title);
+                row.appendChild(open);
+                this.body.appendChild(row);
+            }
+            if (!files.length)
+                this.body.appendChild(productNode("p", tr(this.catalog.instructions?.scan_complete ? "No instructions configured" : "Unavailable"), "product-empty"));
+            if (this.catalog.instructions?.truncated)
+                this.body.appendChild(productNode("p", tr("Showing recent results"), "muted small"));
+        }
+        else if (this.tab === "skills") {
+            const result = this.catalog.skills;
+            const skills = Array.isArray(result?.catalog?.skills) ? result.catalog.skills : [];
+            for (const skill of skills) {
+                const row = this.row(String(skill.name), tr("Available") + " · " + (skill.source_scope === "project" ? tr("Project") : "Runner"));
+                if (skill.description)
+                    row.firstElementChild?.appendChild(productNode("p", String(skill.description), "muted"));
+                this.body.appendChild(row);
+            }
+            if (!skills.length)
+                this.body.appendChild(productNode("p", tr(result?.available ? "Nothing installed yet" : "Unavailable"), "product-empty"));
+            if (result?.catalog?.truncated)
+                this.body.appendChild(productNode("p", tr("Showing recent results"), "muted small"));
+        }
+        else {
+            const result = this.catalog.plugins;
+            const plugins = result?.catalog?.plugins || result?.catalog?.providers || [];
+            for (const plugin of Array.isArray(plugins) ? plugins : []) {
+                const id = String(plugin.id || plugin.plugin || "");
+                const status = plugin.status === "error" ? "Unavailable" : plugin.status === "ready" || plugin.status === "available" ? "Available" : "Registered";
+                const row = this.row(String(plugin.name || id), tr(status) + " · " + (plugin.tool_count ?? plugin.tools?.length ?? "—") + " " + tr("tools"));
+                if (id && this.catalog.can_reload_plugins)
+                    row.appendChild(productButton(tr("Reload"), () => { void this.reloadPlugin(id, row); }));
+                this.body.appendChild(row);
+            }
+            if (!plugins.length)
+                this.body.appendChild(productNode("p", tr(result?.available ? "Nothing installed yet" : "Unavailable"), "product-empty"));
+        }
+    }
+    row(title, subtitle) {
+        const row = productNode("article", "", "product-extension-row");
+        const body = productNode("div");
+        body.append(productNode("h3", title), productNode("span", subtitle, "muted small"));
+        row.appendChild(body);
+        return row;
+    }
+    async openInstruction(file) {
+        const project = this.project;
+        const generation = this.generation;
+        const language = this.services.context().language;
+        const popup = productDialog(file.source_scope === "runner" ? translate("Global instructions", language) : String(file.path), language);
+        this.dialogs.add(popup);
+        popup.body.appendChild(productNode("p", translate("Refreshing…", language)));
+        const result = await this.services.post("instruction", { project, source_scope: file.source_scope, path: file.path, fingerprint: file.fingerprint }, this.request?.signal);
+        if (generation !== this.generation || !popup.dialog.isConnected) {
+            popup.close();
+            this.dialogs.delete(popup);
+            return;
+        }
+        if (result?.status === 401) {
+            this.services.unauthorized();
+            return;
+        }
+        popup.body.replaceChildren();
+        if (!result?.ok)
+            popup.body.appendChild(productNode("p", translate("Could not refresh. Check the connection and try again.", language), "error"));
+        else {
+            popup.body.appendChild(productNode("pre", String(result.data?.content || ""), "product-instructions"));
+            if (result.data?.truncated)
+                popup.body.appendChild(productNode("p", translate("Showing recent results", language)));
+        }
+    }
+    async reloadPlugin(plugin, row) {
+        const project = this.project;
+        const generation = this.generation;
+        const language = this.services.context().language;
+        const control = row.querySelector("button");
+        if (!control || control.disabled)
+            return;
+        control.disabled = true;
+        const result = await this.services.post("plugin-reload", { project, plugin }, this.request?.signal);
+        if (generation !== this.generation || !row.isConnected)
+            return;
+        if (result?.status === 401) {
+            this.services.unauthorized();
+            return;
+        }
+        if (result?.ok) {
+            await this.refresh();
+            return;
+        }
+        const error = productNode("p", translate("Reload could not be confirmed. Refresh before trying again.", language), "error");
+        error.setAttribute("role", "alert");
+        row.appendChild(error);
+        control.disabled = false;
+    }
+}
+
+// These projections use only authorized Workflow Session evidence. Window
+// observations never contribute to Session status, completion or authority.
+function workspaceSessionGroups(sessions) {
+    const rows = [...sessions].sort((a, b) => Number(b.updated_at || 0) - Number(a.updated_at || 0));
+    const attention = rows.filter(row => pendingAttentionCount(row.overview?.attention) > 0 || row.overview?.validation?.state === "failed");
+    const working = rows.filter(row => row.running_call === true || Number(row.running_jobs) > 0);
+    const completed = rows.filter(row => row.lifecycle === "closed");
+    return { attention, working, completed, recent: rows };
+}
+function workspaceSessionEvidence(detail) {
+    const activity = Array.isArray(detail?.activity) ? detail.activity : [];
+    // Paths from exploration are not changed files. This is retained edit evidence,
+    // not a claim about the current Git working tree.
+    const files = [...new Set(activity.filter((row) => row.kind === "Edited")
+            .flatMap((row) => Array.isArray(row.paths) ? row.paths.map(String) : []))];
+    const jobs = activity.filter((row) => row.job_id);
+    const completed = activity.filter((row) => typeof row.finished_at === "number" && row.state === "succeeded" && !row.job_handoff);
+    return { files, jobs, completed: completed.slice(-5).reverse() };
+}
+function workspaceNode(tag, text = "", className = "") {
+    const node = document.createElement(tag);
+    node.textContent = text;
+    node.className = className;
+    return node;
+}
+function workspaceButton(text, action, callback) {
+    const button = workspaceNode("button", text, "workspace-action");
+    button.type = "button";
+    button.dataset.action = action;
+    workspaceControlKeys.set(button, action);
+    button.addEventListener("click", callback);
+    return button;
+}
+function renderWorkspaceHome(node, options) {
+    if (!node)
+        return;
+    // Preserve focused controls on polling when the evidence has not changed.
+    const signature = JSON.stringify([options.language, options.projects, options.project, options.sessions,
+        options.sessionsAvailable, options.sessionsStatus, options.windows, options.windowAvailability, options.windowStatus, options.overview]);
+    if (workspaceHomeSignatures.get(node) === signature)
+        return;
+    workspaceHomeSignatures.set(node, signature);
+    const focusedKey = node.contains(document.activeElement) ? workspaceControlKeys.get(document.activeElement) : null;
+    node.replaceChildren();
+    const tr = (text) => translate(text, options.language);
+    const heading = workspaceNode("header", "", "product-page-heading");
+    const title = workspaceNode("div");
+    title.appendChild(workspaceNode("p", tr("Workspace"), "eyebrow"));
+    title.appendChild(workspaceNode("h2", tr(options.overview ? "WebCodex Ready" : "Workspace")));
+    heading.appendChild(title);
+    heading.appendChild(workspaceButton(tr("Add Project"), "workspace-add-project", options.onAddProject || options.onSearch));
+    node.appendChild(heading);
+    const status = workspaceNode("dl", "", "product-status-strip");
+    status.setAttribute("aria-label", tr("Workspace status"));
+    const runners = Array.isArray(options.overview?.runners) ? options.overview.runners : [];
+    for (const [label, value] of [["Server", tr(options.overview ? "Running" : "Not checked")], ["Runner", options.overview ? String(runners.filter((runner) => runner.connected).length) + " " + tr("online") : tr("Not checked")], ["Projects", String(options.projects.length)]]) {
+        const item = workspaceNode("div");
+        item.appendChild(workspaceNode("dt", tr(label)));
+        item.appendChild(workspaceNode("dd", value));
+        status.appendChild(item);
+    }
+    node.appendChild(status);
+    const projects = workspaceNode("section", "", "product-section");
+    const projectHeading = workspaceNode("header", "", "product-section-heading");
+    projectHeading.appendChild(workspaceNode("h3", tr("Recent Projects")));
+    projectHeading.appendChild(workspaceButton(tr("All Projects"), "workspace-find-project", options.onSearch));
+    projects.appendChild(projectHeading);
+    const recentProjects = [...options.projects].sort((a, b) => Number(b.sessions?.latest_updated_at || 0) - Number(a.sessions?.latest_updated_at || 0));
+    for (const project of recentProjects.slice(0, 4))
+        projects.appendChild(createProductProjectRow(project, { language: options.language, selected: options.project?.id, onOpen: options.onProject, git: options.git }));
+    if (!recentProjects.length)
+        projects.appendChild(workspaceNode("p", tr(options.overview ? "No projects yet" : "Loading projects…"), "muted"));
+    node.appendChild(projects);
+    const activity = workspaceNode("section", "", "product-section");
+    const activityHeading = workspaceNode("header", "", "product-section-heading");
+    activityHeading.appendChild(workspaceNode("h3", tr("Recent Activity")));
+    activityHeading.appendChild(workspaceButton(tr("Windows"), "workspace-open-windows", options.onWindows));
+    activity.appendChild(activityHeading);
+    if (!options.sessionsAvailable)
+        activity.appendChild(workspaceNode("p", options.sessionsStatus || tr("Activity unavailable. Refresh to try again."), "muted"));
+    const sessions = workspaceSessionGroups(options.sessions).recent.slice(0, 5);
+    for (const session of sessions) {
+        const button = workspaceButton("", "workspace-open-session", () => options.onSession(session));
+        workspaceControlKeys.set(button, "session:" + String(session.session_id));
+        button.className = "product-activity-row";
+        button.appendChild(workspaceNode("span", tr("Workflow Sessions"), "product-badge"));
+        button.appendChild(workspaceNode("strong", productTitle(session.title)));
+        button.appendChild(workspaceNode("span", productTime(Number(session.updated_at) * 1000, options.language), "muted small"));
+        activity.appendChild(button);
+    }
+    for (const window of options.windows.slice(0, 2)) {
+        const button = workspaceButton("", "workspace-open-window", () => options.onWindow(String(window.client_window_key)));
+        workspaceControlKeys.set(button, "window:" + String(window.client_window_key));
+        button.className = "product-activity-row";
+        button.appendChild(workspaceNode("span", tr("Windows"), "product-badge"));
+        button.appendChild(workspaceNode("strong", String(window.client_window_key).slice(-12)));
+        button.appendChild(workspaceNode("span", productTime(window.last_meaningful_activity_at_ms || window.last_seen_at_ms, options.language), "muted small"));
+        activity.appendChild(button);
+    }
+    if (options.sessionsAvailable && !sessions.length && !options.windows.length)
+        activity.appendChild(workspaceNode("p", tr("No activity observed yet"), "muted"));
+    node.appendChild(activity);
+    if (focusedKey)
+        Array.from(node.querySelectorAll("button")).find(button => workspaceControlKeys.get(button) === focusedKey)?.focus();
+}
+const workspaceControlKeys = new WeakMap();
+const workspaceHomeSignatures = new WeakMap();
+function renderWorkspaceEvidence(node, detail, language) {
+    if (!node)
+        return;
+    node.replaceChildren();
+    const tr = (text) => translate(text, language);
+    const evidence = workspaceSessionEvidence(detail);
+    const overview = workflowSessionOverviewPresentation(detail?.overview);
+    const facts = [
+        ["Observed work", localizedWorkflowText(overview.workText, language)],
+        ["Attention", localizedWorkflowText(overview.attentionText, language)],
+        ["Validation", localizedWorkflowText(overview.validationText, language)],
+        ["Running Jobs", String(detail.running_jobs ?? 0) + (detail.running_jobs_complete === false ? " · " + tr("partial scan") : "")],
+    ];
+    for (const [label, text] of facts) {
+        const fact = workspaceNode("div", "", "workspace-evidence-fact");
+        fact.appendChild(workspaceNode("dt", tr(label)));
+        fact.appendChild(workspaceNode("dd", text));
+        node.appendChild(fact);
+    }
+    const edits = workspaceNode("div", "", "workspace-evidence-fact");
+    edits.appendChild(workspaceNode("dt", tr("Files in retained edits")));
+    edits.appendChild(workspaceNode("dd", evidence.files.length ? evidence.files.join(" · ") : tr("No file edits in loaded activity.")));
+    node.appendChild(edits);
+    const jobs = workspaceNode("div", "", "workspace-evidence-fact");
+    jobs.appendChild(workspaceNode("dt", tr("Recent Job evidence")));
+    jobs.appendChild(workspaceNode("dd", evidence.jobs.length ? evidence.jobs.slice(-3).reverse().map(row => activityDescription(row, language)).join(" · ") : tr("No Jobs in loaded activity.")));
+    node.appendChild(jobs);
+    const completed = workspaceNode("div", "", "workspace-evidence-fact");
+    completed.appendChild(workspaceNode("dt", tr("Recently completed")));
+    completed.appendChild(workspaceNode("dd", evidence.completed.length ? evidence.completed.slice(0, 3).map(row => activityDescription(row, language)).join(" · ") : tr("No successful completions in loaded activity.")));
+    node.appendChild(completed);
+}
+function workspaceListChip(parent, text, extraClass = "") {
+    const chip = workspaceNode("span", text, "chip " + extraClass);
+    parent.appendChild(chip);
+    return chip;
+}
+function renderWorkspaceSessionList(node, visible, selected, language, onSelect) {
+    const tr = (text) => translate(text, language);
+    for (const session of visible) {
+        const id = String(session && session.session_id || "");
+        if (!id)
+            continue;
+        const wrapper = document.createElement("li");
+        const item = document.createElement("button");
+        item.type = "button";
+        item.dataset.action = "select-work-session";
+        item.className = "session-card" + (id === selected ? " selected" : "");
+        if (id === selected)
+            item.setAttribute("aria-current", "true");
+        const icon = document.createElement("span");
+        icon.className = "session-card-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.appendChild(runtimeIcon("message"));
+        const main = document.createElement("div");
+        main.className = "session-card-main";
+        const title = document.createElement("div");
+        title.className = "session-title";
+        title.textContent = session.title ? String(session.title) : id;
+        const meta = document.createElement("div");
+        meta.className = "chips session-meta";
+        const lifecycle = String(session.lifecycle || "unknown");
+        if (lifecycle !== "active")
+            workspaceListChip(meta, tr(lifecycle));
+        const liveness = formatLivenessPresentation(session, language);
+        const livenessChip = workspaceListChip(meta, liveness.label, liveness.state === "working" ? "tone-runtime" : liveness.state === "attention" ? "tone-warn" : "");
+        livenessChip.title = liveness.tooltip;
+        workspaceListChip(meta, formatUpdatedTime(session.updated_at, language));
+        main.appendChild(title);
+        main.appendChild(meta);
+        item.appendChild(icon);
+        item.appendChild(main);
+        const select = () => onSelect(id);
+        item.addEventListener("click", select);
+        wrapper.appendChild(item);
+        node.appendChild(wrapper);
+    }
+}
+function installWorkspaceCommands(options) {
+    const dialog = document.getElementById("runtime-command-dialog");
+    const input = document.getElementById("runtime-command-query");
+    const results = document.getElementById("runtime-command-results");
+    if (!dialog || !input || !results)
+        return;
+    let returnFocus = null;
+    const render = () => {
+        const language = options.language();
+        const query = input.value.trim().toLocaleLowerCase();
+        results.replaceChildren();
+        const entries = [
+            ...[["Home", "home"], ["Projects", "projects"], ["Workflow Sessions", "sessions"], ["Windows", "windows"], ["Activity", "activity"], ["Extensions", "extensions"], ["Advanced", "operations"]]
+                .map(([label, view]) => ({ label: translate(label, language), action: "command-" + view, run: () => options.onView(view) })),
+            ...options.projects().map(project => ({ label: String(project.name || project.id) + " · " + String(project.client_id || ""), action: "command-project", run: () => options.onProject(String(project.client_id || ""), String(project.id || "")) })),
+        ];
+        for (const entry of entries.filter(entry => entry.label.toLocaleLowerCase().includes(query))) {
+            results.appendChild(workspaceButton(entry.label, entry.action, () => { dialog.close(); if (options.available())
+                entry.run(); }));
+        }
+        if (!results.childElementCount)
+            results.appendChild(workspaceNode("p", translate("No matching destinations.", language), "muted"));
+    };
+    const open = () => {
+        if (!options.available() || dialog.open)
+            return;
+        returnFocus = document.activeElement;
+        input.value = "";
+        render();
+        dialog.showModal();
+        input.focus();
+    };
+    document.getElementById("runtime-open-commands")?.addEventListener("click", open);
+    document.getElementById("runtime-command-close")?.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => returnFocus?.focus());
+    input.addEventListener("input", render);
+    input.addEventListener("keydown", event => {
+        if (event.isComposing)
+            return;
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            results.querySelector("button")?.focus();
+        }
+        if (event.key === "Enter") {
+            event.preventDefault();
+            results.querySelector("button")?.click();
+        }
+    });
+    document.addEventListener("keydown", event => {
+        if ((event.metaKey || event.ctrlKey) && event.shiftKey && !event.altKey && !event.isComposing && event.key.toLowerCase() === "k") {
+            event.preventDefault();
+            open();
+        }
+    });
+}
+function renderWorkspaceOverview(overview, language) {
+    const view = workflowSessionOverviewPresentation(overview);
+    for (const [id, text] of [
+        ["work", view.workText], ["attention", view.attentionText],
+        ["validation", view.validationText + (typeof view.validationAt === "number" ? " · " + formatUpdatedTime(view.validationAt, language) : "")],
+        ["progress", view.progressText + (typeof view.progressAt === "number" ? " · " + formatUpdatedTime(view.progressAt, language) : "")],
+    ]) {
+        const node = document.getElementById("runtime-overview-" + id);
+        if (node)
+            node.textContent = localizedWorkflowText(text, language);
+    }
+    for (const [id, tone] of [["validation", view.validationTone], ["attention", view.attentionTone]]) {
+        const node = document.getElementById("runtime-overview-" + id + "-card");
+        for (const name of ["pass", "warn", "fail", "muted"])
+            node?.classList.toggle("tone-card-" + name, tone === name);
+    }
+}
+
 const API_BASE = RUNTIME_API_BASE;
 const apiClient = new RuntimeApiClient(API_BASE);
 const REFRESH_MS = 30000;
@@ -3438,7 +4405,7 @@ const WINDOW_REFRESH_MS = 3000;
 const COLLABORATION_WAIT_SECS = 25;
 const PROJECT_SEARCH_DEBOUNCE_MS = 200;
 const MOBILE_NAVIGATION_MEDIA = "(max-width: 900px)";
-const WIDE_CONTEXT_MEDIA = "(min-width: 1280px)";
+const WIDE_CONTEXT_MEDIA = "(min-width: 1600px)";
 let contextUserIntent = null;
 // Verified localization mapping: "Close session context": "关闭会话上下文"
 const appearanceMedia = window.matchMedia(APPEARANCE_MEDIA_QUERY);
@@ -3481,7 +4448,7 @@ let projectSearchTimer = 0;
 let collaborationReplyTo = "";
 let renderedCollaborationMessageIds = new Set();
 let locallyAuthoredCollaborationMessageIds = new Set();
-let workspaceView = "sessions";
+let workspaceView = "home";
 let collaborationFollowLatest = true;
 let collaborationPendingMessages = 0;
 let refreshInFlight = false;
@@ -3490,6 +4457,7 @@ let projectRowsTruncated = false;
 let knownProjectDevices = [];
 let selectedProjectSnapshot = null;
 let sessionRows = [];
+let sessionAvailability = "idle";
 let sessionListMetaSnapshot = { total: 0, truncated: false };
 const state = initialRuntimeConsoleState();
 let renderedProjectSelectorsSignature = "";
@@ -3514,6 +4482,20 @@ let pendingAgentCreate = null;
 let pendingConversationCreate = null;
 let pendingConversationMessage = null;
 const pageAttachmentId = "runtime-console-" + operationKey("page");
+const productProjectApi = new RuntimeApiClient("/api/projects/");
+const productServices = {
+    context: () => ({ language: runtimeLanguage, projects: homeProjectRows, runners: runnerRows,
+        sessions: recentSessionRows, windows: windowRows.length ? windowRows : projectWindowRows,
+        selectedProject: state.selectedProject || "", available: Boolean(runtimeOverviewSnapshot),
+    }),
+    post: (path, payload, signal) => api(path, payload, signal),
+    registerProject: (payload, signal) => { productProjectApi.setToken(token); return productProjectApi.post("resolve-or-register", payload, signal); },
+    onProject: (runner, project) => { switchProject(runner, project); applyWorkspaceView("sessions"); },
+    onSession: session => selectRecentSession(session), onWindow: openWindowInspector,
+    refresh: () => { void refreshAll(); }, unauthorized: () => lock(tr("Your access key is no longer valid. Connect again.")),
+};
+const productWorkspace = new ProductWorkspace(productServices);
+const productExtensions = new ProductExtensions(productServices);
 function el(id) {
     return document.getElementById(id);
 }
@@ -3536,7 +4518,7 @@ function translatedStaticNodeValue(source) {
 function captureStaticUiSources() {
     if (staticTextSources.length || staticAttributeSources.length)
         return;
-    const root = el("runtime-page");
+    const root = document.body;
     if (!root)
         return;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -3582,13 +4564,14 @@ function renderLanguageSensitiveUi() {
     renderCommunicationSurface();
     syncCollaborationComposer();
     renderWorkspaceHeading();
+    renderHome();
     setRuntimeConnectionState(token ? "connected" : "disconnected");
 }
 function applyLanguage(language, persist = true, rerender = true) {
     runtimeLanguage = languagePreference(language);
     document.documentElement.lang = runtimeLanguage;
     document.documentElement.dataset.language = runtimeLanguage;
-    document.title = tr("WebCodex — Runtime Console");
+    document.title = tr("WebCodex — Workspace");
     for (const source of staticTextSources)
         source.node.nodeValue = translatedStaticNodeValue(source.source);
     for (const source of staticAttributeSources)
@@ -3643,6 +4626,25 @@ function parseWorkspaceViewPreference(value) {
 function readStoredWorkspaceView() {
     return loadWorkspaceViewPreference();
 }
+function renderHome() {
+    renderWorkspaceHome(el("runtime-home-content"), {
+        language: runtimeLanguage, projects: homeProjectRows, project: selectedProjectRow(),
+        sessions: recentSessionRows, sessionsAvailable: Boolean(runtimeOverviewSnapshot),
+        sessionsStatus: runtimeOverviewSnapshot ? "" : tr("Activity unavailable. Refresh to try again."),
+        windows: projectWindowRows, windowAvailability: projectWindowAvailability, windowScope: windowVisibilityScope,
+        windowStatus: "", overview: runtimeOverviewSnapshot,
+        onProject: productServices.onProject, onSession: productServices.onSession,
+        onWindow: openWindowInspector, onWindows: () => applyWorkspaceView("windows"),
+        onSearch: () => applyWorkspaceView("projects"), onAddProject: () => productWorkspace.addProject(),
+        git: (project, target) => productWorkspace.attachGit(project, target),
+    });
+    if (workspaceView === "projects")
+        productWorkspace.renderProjects();
+    if (workspaceView === "activity")
+        productWorkspace.renderActivity();
+    if (workspaceView === "extensions")
+        productExtensions.open();
+}
 function renderWorkspaceHeading() {
     if (workspaceView === "operations") {
         setText("runtime-breadcrumb-runner", tr("Runtime workspace"));
@@ -3657,6 +4659,11 @@ function renderWorkspaceHeading() {
         return;
     }
     renderWorkspaceBreadcrumb();
+    const productHeading = { home: "Home", projects: "Projects", activity: "Activity", extensions: "Extensions" }[workspaceView];
+    if (productHeading) {
+        setText("runtime-session-title", tr(productHeading));
+        return;
+    }
     const snapshot = state.workflow?.snapshot;
     setText("runtime-session-title", snapshot?.title ? String(snapshot.title) : tr("Select a Session"));
 }
@@ -3671,6 +4678,10 @@ function applyWorkspaceView(view, persist = true) {
     document.body.classList.toggle("runtime-operations-view", operations);
     document.body.classList.toggle("runtime-windows-view", windows);
     show("runtime-navigation-sessions", sessions);
+    for (const view of ["projects", "activity", "extensions"])
+        show(`runtime-${view}-stage`, workspaceView === view);
+    show("runtime-home-stage", workspaceView === "home");
+    renderHome();
     show("runtime-navigation-operations", operations);
     show("runtime-navigation-windows", windows);
     show("runtime-conversation-stage", sessions);
@@ -4026,7 +5037,7 @@ function renderWindowList() {
     setText("runtime-window-list-empty", emptyCopy);
     show("runtime-window-list-empty", windowRows.length === 0);
     setText("runtime-window-list-status", formatWindowListStatusText(windowAvailability, windowRows.length, windowVisibilityScope, runtimeLanguage));
-    renderWindowCards(node, windowRows, selectedWindowKey, (key) => void selectWindow(key), Date.now(), runtimeLanguage);
+    renderWindowCards(node, windowRows.map(row => ({ ...row, last_project_name: productName(homeProjectRows.find(project => project.id === row.last_project) || { id: row.last_project }) })), selectedWindowKey, (key) => void selectWindow(key), Date.now(), runtimeLanguage);
 }
 function renderWindowDetail(detail) {
     selectedWindowDetail = detail;
@@ -4053,6 +5064,22 @@ function renderWindowDetail(detail) {
     });
     renderWindowLinkedSessions(el("runtime-window-linked-sessions"), Array.isArray(detail.linked_sessions) ? detail.linked_sessions : [], (session) => openWindowLinkedSession(session), runtimeLanguage);
     renderWindowActivities(el("runtime-window-activity"), Array.isArray(detail.activity) ? detail.activity : []);
+    const observed = [...(detail.active_requests || []).map((row) => ({ ...row, at: row.started_at_ms })), ...(detail.activity || []).filter((row) => row.meaningful).map((row) => ({ ...row, at: row.ended_at_ms }))].sort((a, b) => Number(b.at) - Number(a.at));
+    const project = observed.find((row) => row.project)?.project;
+    setText("runtime-window-project", productName(homeProjectRows.find(row => row.id === project) || { id: project }));
+    setText("runtime-window-product-state", tr(Number(detail.active_count) > 0 ? "In progress" : "Observed"));
+    const timeline = el("runtime-window-product-activity");
+    timeline?.replaceChildren();
+    for (const entry of observed.slice(0, 20)) {
+        const row = productNode("article");
+        const text = productNode("div");
+        text.appendChild(productNode("strong", productActivity(entry, runtimeLanguage)));
+        text.appendChild(productNode("span", productName(homeProjectRows.find(project => project.id === entry.project) || { id: entry.project }), "muted small"));
+        row.append(text, productNode("time", productTime(entry.at, runtimeLanguage)));
+        timeline?.appendChild(row);
+    }
+    if (!observed.length)
+        timeline?.appendChild(productNode("p", tr("No activity observed yet"), "muted"));
     renderWorkspaceHeading();
 }
 async function refreshWindowDetail() {
@@ -4178,6 +5205,7 @@ function clearProjectWindows() {
     renderProjectWindows();
 }
 function renderProjectWindows() {
+    renderHome();
     const list = el("runtime-project-windows-list");
     if (!list)
         return;
@@ -4270,6 +5298,7 @@ function hideDetail() {
     show("runtime-session-detail", false);
     show("runtime-session-context", false);
     show("runtime-session-detail-empty", true);
+    renderHome();
     show("runtime-jump-latest", false);
     setText("runtime-session-workspace", "");
     clearNode(el("runtime-collaboration-board"));
@@ -4283,6 +5312,7 @@ function hideDetail() {
 function clearSessionSurface() {
     saveCurrentDraft();
     sessionRows = [];
+    sessionAvailability = "idle";
     sessionListMetaSnapshot = { total: 0, truncated: false };
     const sessionSearch = el("runtime-session-search");
     if (sessionSearch)
@@ -4299,6 +5329,11 @@ function clearSessionSurface() {
     clearProjectWindows();
 }
 function lock(message = "", clearRemembered = true) {
+    productWorkspace.reset();
+    productExtensions.reset();
+    productProjectApi.clearToken();
+    el("runtime-command-dialog")?.close();
+    el("runtime-command-results")?.replaceChildren();
     setMobileNavigationOpen(false, false);
     closeRuntimeInspector(false, true);
     contextUserIntent = null;
@@ -4597,6 +5632,7 @@ function revealWorkflowSessionDetail() {
     panel?.scrollIntoView({ block: "start", inline: "nearest" });
 }
 function renderProjectSelectors(projects, truncated) {
+    renderHome();
     const deviceSelect = el("runtime-device-select");
     const projectList = el("runtime-project-list");
     if (!deviceSelect || !projectList)
@@ -4656,6 +5692,7 @@ function switchProject(device, project) {
     if (device)
         revealRunner(device);
     const request = selectRuntimeProject(state, device, project);
+    applyWorkspaceView("home");
     const windowRequest = refreshRuntimeProjectWindows(state);
     renderProjectSelectors(projectRows, projectRowsTruncated);
     renderRunnerFleet(runnerRows);
@@ -4702,6 +5739,7 @@ function renderRunnerFleet(runners) {
     setText("runtime-runner-count", formatRunnerCountText(runners.length, runtimeLanguage));
 }
 function renderRecentSessions(sessions, meta) {
+    renderHome();
     const node = el("runtime-recent-session-list");
     if (!node)
         return;
@@ -4727,6 +5765,7 @@ function renderRecentSessions(sessions, meta) {
     }
 }
 function selectRecentSession(session) {
+    applyWorkspaceView("sessions");
     const clientId = String(session?.client_id || "");
     const projectId = String(session?.project_id || "");
     const sessionId = String(session?.session_id || "");
@@ -4780,10 +5819,14 @@ async function fetchSessions(request) {
     if (response.status === 401)
         return lock("Credential rejected.");
     if (response.status === 403 || response.status === 404) {
+        sessionAvailability = "stale";
+        renderHome();
         showError("Selected project is no longer available.");
         return;
     }
     if (!response.ok || !response.data) {
+        sessionAvailability = "stale";
+        renderHome();
         showError("Could not refresh Workflow Sessions.");
         return;
     }
@@ -4791,6 +5834,7 @@ async function fetchSessions(request) {
     const previousSelected = selected
         ? sessionRows.find((row) => String(row?.session_id || "") === selected)
         : null;
+    sessionAvailability = "available";
     sessionRows = Array.isArray(response.data.sessions) ? response.data.sessions : [];
     sessionListMetaSnapshot = {
         total: typeof response.data.total === "number" ? Math.max(sessionRows.length, response.data.total) : sessionRows.length,
@@ -4826,9 +5870,6 @@ function localizedLivenessPresentation(session) {
 function localWorkflowText(value) {
     return localizedWorkflowText(value, runtimeLanguage);
 }
-function appendPreview(parent, label, activity) {
-    appendActivityPreview(parent, label, activity, runtimeLanguage);
-}
 function renderSessionList(sessions, payload) {
     const node = el("runtime-session-list");
     if (!node)
@@ -4845,45 +5886,11 @@ function renderSessionList(sessions, payload) {
     show("runtime-sessions-empty", visible.length === 0);
     setText("runtime-session-search-status", query ? visible.length + " / " + sessions.length : "");
     setText("runtime-sessions-count", total ? sessions.length + (payload.truncated ? " of " + total : "") : "0");
-    for (const session of visible) {
-        const id = String(session && session.session_id || "");
-        if (!id)
-            continue;
-        const wrapper = document.createElement("li");
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "session-card" + (id === selected ? " selected" : "");
-        if (id === selected)
-            item.setAttribute("aria-current", "true");
-        const icon = document.createElement("span");
-        icon.className = "session-card-icon";
-        icon.setAttribute("aria-hidden", "true");
-        icon.appendChild(runtimeIcon("message"));
-        const main = document.createElement("div");
-        main.className = "session-card-main";
-        const title = document.createElement("div");
-        title.className = "session-title";
-        title.textContent = session.title ? String(session.title) : id;
-        const meta = document.createElement("div");
-        meta.className = "chips session-meta";
-        const lifecycle = String(session.lifecycle || "unknown");
-        if (lifecycle !== "active")
-            appendChip(meta, tr(lifecycle));
-        const liveness = localizedLivenessPresentation(session);
-        const livenessChip = appendChip(meta, liveness.label, liveness.state === "working" ? "tone-runtime" : liveness.state === "attention" ? "tone-warn" : "");
-        livenessChip.title = liveness.tooltip;
-        appendChip(meta, updatedLabel(session.updated_at));
-        main.appendChild(title);
-        main.appendChild(meta);
-        item.appendChild(icon);
-        item.appendChild(main);
-        const select = () => selectSession(id);
-        item.addEventListener("click", select);
-        wrapper.appendChild(item);
-        node.appendChild(wrapper);
-    }
+    renderWorkspaceSessionList(node, visible, selected, runtimeLanguage, selectSession);
+    renderHome();
 }
 function selectSession(sessionId) {
+    applyWorkspaceView("sessions");
     saveCurrentDraft();
     abort(detailAbort);
     detailAbort = null;
@@ -4936,15 +5943,6 @@ function setTone(id, tone) {
     for (const name of ["pass", "warn", "fail", "muted"])
         node.classList.toggle("tone-card-" + name, tone === name);
 }
-function renderOverview(overview) {
-    const view = workflowSessionOverviewPresentation(overview);
-    setText("runtime-overview-work", localWorkflowText(view.workText));
-    setText("runtime-overview-validation", localWorkflowText(view.validationText) + (typeof view.validationAt === "number" ? " · " + updatedLabel(view.validationAt) : ""));
-    setTone("runtime-overview-validation-card", view.validationTone);
-    setText("runtime-overview-attention", localWorkflowText(view.attentionText));
-    setTone("runtime-overview-attention-card", view.attentionTone);
-    setText("runtime-overview-progress", localWorkflowText(view.progressText) + (typeof view.progressAt === "number" ? (runtimeLanguage === "zh-CN" ? " · 报告于 " : " · reported ") + updatedLabel(view.progressAt) : ""));
-}
 function syncFollowUi() {
     show("runtime-jump-latest", !!state.workflow.selectedSessionId && !shouldFollowWorkflowSessionLatest(state.workflow));
 }
@@ -4968,7 +5966,9 @@ function renderDetail(detail, consumeCollaborationNotice = true) {
     setText("runtime-session-updated", dateTimeLabel(detail.updated_at));
     renderSessionWorkspaceIdentity();
     renderSessionWindowCorrelation(detail);
-    renderOverview(detail.overview);
+    renderWorkspaceOverview(detail.overview, runtimeLanguage);
+    renderWorkspaceEvidence(el("runtime-work-evidence"), detail, runtimeLanguage);
+    renderWorkspaceEvidence(el("runtime-context-evidence"), detail, runtimeLanguage);
     renderCollaboration(undefined, consumeCollaborationNotice);
     syncResponsiveNavigation();
     const activities = Array.isArray(detail.activity) ? detail.activity : [];
@@ -6388,6 +7388,9 @@ function setRefreshBusy(active) {
     }
 }
 async function refreshAll() {
+    productWorkspace.invalidateGit();
+    if (workspaceView === "extensions")
+        void productExtensions.refresh();
     if (!token || refreshInFlight)
         return;
     setRefreshBusy(true);
@@ -6455,6 +7458,9 @@ function stopWindowAuto() {
     windowTimer = 0;
 }
 function connectRuntimeCredential(nextToken, rememberForTab) {
+    productWorkspace.reset();
+    productExtensions.reset();
+    productProjectApi.clearToken();
     rememberCredentialForTab = rememberForTab;
     token = nextToken;
     setRuntimeConnectionState("connecting");
@@ -6478,7 +7484,7 @@ el("runtime-token-form")?.addEventListener("submit", (event) => {
     if (input)
         input.value = "";
     if (!nextToken) {
-        setText("runtime-token-error", tr("Enter a runtime Bearer credential."));
+        setText("runtime-token-error", tr("Enter your access key."));
         return;
     }
     connectRuntimeCredential(nextToken, remember?.checked !== false);
@@ -6568,6 +7574,7 @@ document.querySelector(".context-trigger")?.addEventListener("click", (event) =>
     }
     syncContextUi(false);
 });
+installWorkspaceCommands({ language: () => runtimeLanguage, available: () => !!token, projects: () => effectiveProjects(projectRows), onProject: switchProject, onView: applyWorkspaceView });
 document.querySelectorAll("[data-runtime-view]").forEach((button) => {
     button.addEventListener("click", () => applyWorkspaceView(parseWorkspaceViewPreference(button.dataset.runtimeView)));
 });
@@ -6663,7 +7670,9 @@ document.querySelector(".runtime-inspector")?.addEventListener("toggle", (event)
 });
 document.addEventListener("keydown", (event) => {
     const shell = el("runtime-console");
-    if (!event.isComposing && !event.altKey && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k" && shell && !shell.hidden) {
+    if (document.querySelector("#runtime-command-dialog[open]"))
+        return;
+    if (!event.isComposing && !event.altKey && !event.shiftKey && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k" && shell && !shell.hidden) {
         event.preventDefault();
         focusProjectNavigation();
         return;
