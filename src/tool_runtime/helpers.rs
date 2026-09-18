@@ -77,6 +77,11 @@ pub(crate) fn run_test_command_with_timeout(
             );
         }
         command.stdin(std::process::Stdio::from(stdin_source));
+    } else {
+        // Match the non-interactive Runner: no payload means EOF, not the
+        // invoking console's stdin. Commands such as `git mktree` otherwise
+        // wait for user input even though headless CI happens to pass.
+        command.stdin(std::process::Stdio::null());
     }
     let mut stdout_capture = match tempfile::tempfile() {
         Ok(file) => file,
