@@ -71,7 +71,7 @@ const SEARCH_PROJECT_TEXT_RG_EXCLUDE_GLOBS: &[&str] = &[
     "!**/*.key",
 ];
 
-pub(crate) const MAX_SEARCH_CONTEXT_LINES: usize = 20;
+pub(crate) const MAX_SEARCH_CONTEXT_LINES: usize = 80;
 pub(crate) const MAX_SEARCH_GLOBS: usize = 32;
 pub(crate) const MAX_SEARCH_GLOB_BYTES: usize = 256;
 pub(crate) const DEFAULT_SEARCH_TIMEOUT_SECS: u64 = 30;
@@ -2567,6 +2567,6 @@ mod tests {
             timeout_secs: None,
         })
         .unwrap();
-        assert_eq!((options.context_before, options.context_after), (20, 20));
+        assert_eq!((options.context_before, options.context_after), (21, 80));
     }
 }

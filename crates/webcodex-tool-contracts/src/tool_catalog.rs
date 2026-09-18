@@ -39,6 +39,7 @@ pub const TOOL_DISCOVERY_GROUPS: &[ToolDiscoveryGroup] = &[
             "run_script",
             "run_shell",
             "search_project_texts",
+            "search_and_read",
             "document_symbols",
             "document_diagnostics",
             "hover",
@@ -500,6 +501,7 @@ pub const TOOL_RECOMMENDED_FLOWS: &[ToolRecommendedFlow] = &[
 pub const CODING_INTENT_TOOL_NAMES: &[&str] = &[
     "work_on_project",
     "project_overview",
+    "search_and_read",
     "search_project_texts",
     "read_files",
     "project_artifact",
