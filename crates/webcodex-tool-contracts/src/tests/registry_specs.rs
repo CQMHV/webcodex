@@ -344,13 +344,11 @@ fn tool_specs_describe_default_coding_loop_preferences() {
         "may omit expected_read_revision",
         "occurrence or line_scope",
         "requires expected_read_revision",
-        "stronger whole-file stale-context fence",
+        "revisions fence whole-file snapshots",
         "model input never needs a digest",
         "preflighted transactionally",
         "conflicts fail closed",
-        "rechecks planned source content before mutation",
-        "expected correctness and reliability",
-        "minimal error facts",
+        "rechecks source before mutation",
         "one parser-ready read_files recovery call",
         "inspect the resulting diff",
         "validate the final source",
@@ -810,6 +808,14 @@ fn edit_tool_surface_keeps_mutation_options_visible_and_schemas_stable() {
             "apply_text_edits must keep field {field}"
         );
     }
+    let text_edit_output =
+        &spec_named(&specs, "apply_text_edits").output_schema["properties"]["output"]["properties"];
+    let text_edit_file_properties = text_edit_output["files"]["items"]["properties"]
+        .as_object()
+        .expect("apply_text_edits file summary properties");
+    assert!(text_edit_file_properties.contains_key("read_revision"));
+    assert!(!text_edit_file_properties.contains_key("old_sha256"));
+    assert!(!text_edit_file_properties.contains_key("new_sha256"));
     let codex_patch = &spec_named(&specs, "apply_patch").input_schema["properties"];
     for field in ["project", "patch", "dry_run", "matching_mode"] {
         assert!(

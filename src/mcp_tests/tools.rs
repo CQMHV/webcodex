@@ -1907,7 +1907,12 @@ fn mcp_compact_common_copy_respects_tool_and_argument_boundaries() {
         (
             "cargo_check",
             "sync_wait_secs",
-            vec!["Same-execution", "10s", "60s", "timeout", "Never"],
+            vec!["Same-execution", "10s", "55s", "timeout", "Never"],
+        ),
+        (
+            "run_shell",
+            "sync_wait_secs",
+            vec!["10s", "55s", "timeout", "return"],
         ),
         (
             "run_shell",
@@ -1959,7 +1964,7 @@ fn mcp_compact_common_copy_respects_tool_and_argument_boundaries() {
             }
         }
         if name == "run_shell" {
-            for field in ["cwd", "timeout_secs", "sync_wait_secs"] {
+            for field in ["cwd", "timeout_secs"] {
                 let copy = tool["inputSchema"]["properties"][field]["description"]
                     .as_str()
                     .unwrap();
