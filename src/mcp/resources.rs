@@ -7,7 +7,7 @@ use super::{require_mcp_scope, scope_forbidden, McpOutcome};
 use crate::auth::AuthContext;
 use crate::tool_runtime::{
     validate_project_artifact_export_snapshot, ProjectArtifactExportSnapshot, ToolResult,
-    ToolRuntime, MAX_PROJECT_ARTIFACT_EXPORT_BYTES, MAX_READ_PROJECT_ARTIFACT_LENGTH,
+    ToolRuntime, INTERNAL_ARTIFACT_TRANSFER_CHUNK_BYTES, MAX_PROJECT_ARTIFACT_EXPORT_BYTES,
 };
 use base64::{engine::general_purpose, Engine as _};
 use futures_util::future::join_all;
@@ -1065,6 +1065,7 @@ pub(super) async fn mcp_artifact_export_read_chunk(
             &record.project,
             &record.snapshot.path,
             record.snapshot.bytes,
+            &record.snapshot.sha256,
             offset,
             length,
             auth,
@@ -1142,13 +1143,13 @@ pub(super) async fn mcp_artifact_export_stream_plan_with_gate_timeout(
     )
     .await?;
     let max_chunks = MAX_PROJECT_ARTIFACT_EXPORT_BYTES
-        .div_ceil(MAX_READ_PROJECT_ARTIFACT_LENGTH)
+        .div_ceil(INTERNAL_ARTIFACT_TRANSFER_CHUNK_BYTES)
         .saturating_add(1);
     let mut first_chunk = Vec::new();
     let mut offset = 0usize;
     let mut chunks = 0usize;
     if snapshot.bytes > 0 {
-        let length = snapshot.bytes.min(MAX_READ_PROJECT_ARTIFACT_LENGTH);
+        let length = snapshot.bytes.min(INTERNAL_ARTIFACT_TRANSFER_CHUNK_BYTES);
         let chunk = mcp_artifact_export_with_read_budget(
             runtime,
             &mut read_budget,
@@ -1353,7 +1354,8 @@ pub(super) async fn mcp_artifact_export_stream_transfer(
                 return Err(McpArtifactExportReadError::Unsafe);
             }
             plan.chunks = plan.chunks.saturating_add(1);
-            let length = (snapshot.bytes - batch_offset).min(MAX_READ_PROJECT_ARTIFACT_LENGTH);
+            let length =
+                (snapshot.bytes - batch_offset).min(INTERNAL_ARTIFACT_TRANSFER_CHUNK_BYTES);
             batch.push((batch_offset, length));
             batch_offset = batch_offset
                 .checked_add(length)
@@ -1689,7 +1691,6 @@ pub(super) fn project_artifact_presentation_mode(
     arguments: &Value,
 ) -> ProjectArtifactPresentationMode {
     match tool_name {
-        "export_project_artifact" => ProjectArtifactPresentationMode::Export,
         "read_project_artifact"
             if arguments.get("as_image").and_then(Value::as_bool) == Some(true) =>
         {
@@ -1704,12 +1705,8 @@ pub(super) fn project_artifact_presentation_mode(
     }
 }
 
-fn artifact_export_operation_label(tool_name: &str) -> &'static str {
-    if tool_name == "project_artifact" {
-        "project_artifact(action=export)"
-    } else {
-        "export_project_artifact"
-    }
+fn artifact_export_operation_label(_tool_name: &str) -> &'static str {
+    "project_artifact(action=export)"
 }
 
 #[derive(Debug, Default)]

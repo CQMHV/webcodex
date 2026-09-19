@@ -191,7 +191,6 @@ pub const TOOL_DISCOVERY_GROUPS: &[ToolDiscoveryGroup] = &[
             "read_project_artifact_metadata",
             "read_project_artifact",
             "import_conversation_files_to_project",
-            "export_project_artifact",
             "artifact_upload_begin",
             "artifact_upload_chunk",
             "artifact_upload_finish",
@@ -202,8 +201,8 @@ pub const TOOL_DISCOVERY_GROUPS: &[ToolDiscoveryGroup] = &[
         name: TOOL_DISCOVERY_GROUP_FILE_TRANSFER,
         tools: &[
             "import_conversation_files_to_project",
+            "transfer_project_artifact",
             "project_artifact",
-            "export_project_artifact",
             "save_project_artifact",
             "read_project_artifact_metadata",
             "read_project_artifact",
@@ -439,10 +438,11 @@ pub const TOOL_RECOMMENDED_FLOWS: &[ToolRecommendedFlow] = &[
     },
     ToolRecommendedFlow {
         name: "file_transfer",
-        summary: "Artifact boundary: host/conversation attachment -> import_conversation_files_to_project; Project -> model/host -> project_artifact. Use metadata for facts, inspect for one bounded segment, image for native MCP image delivery, and export for complete MCP ResourceLink delivery.",
-        manifest_purpose: "Keep directions explicit: import_conversation_files_to_project is the Host-to-Project write boundary. project_artifact is the preferred Project-to-model/host read facade: metadata observes artifact facts, inspect reads one bounded snapshot-fenced segment, image uses supported native MCP image delivery, and export uses an authenticated ResourceLink for complete transfer. Do not loop inspect chunks to transfer a whole file. save_project_artifact/artifact_upload_* remain for caller-held binary writes.",
+        summary: "File transfer: Host -> import_conversation_files_to_project -> Project; Project -> project_artifact -> Host/model; Project A -> transfer_project_artifact -> Project B. Use metadata for facts, inspect for one bounded segment, image for MCP image delivery, export for complete ResourceLink delivery.",
+        manifest_purpose: "Keep directions explicit: import_conversation_files_to_project is the Host-to-Project write boundary. transfer_project_artifact is the direct Project-to-Project path and streams the exact source bytes/SHA snapshot through Control without Host attachments or model-facing base64. project_artifact is the preferred Project-to-model/host read facade: metadata observes artifact facts, inspect reads one bounded snapshot-fenced segment, image uses supported native MCP image delivery, and export uses an authenticated ResourceLink for complete transfer. Do not loop inspect chunks to transfer a whole file. save_project_artifact/artifact_upload_* remain low-level caller-held binary write primitives.",
         tools: &[
             "import_conversation_files_to_project",
+            "transfer_project_artifact",
             "project_artifact",
             "save_project_artifact",
             "artifact_upload_begin",
@@ -628,9 +628,10 @@ pub const TOOL_MANIFEST_INTENTS: &[ToolManifestIntent] = &[
     },
     ToolManifestIntent {
         name: "file_transfer",
-        purpose: "Move files across the host/Project boundary without routing complete binary payloads through model text.",
+        purpose: "Move files across Host/Project and Project/Project boundaries without routing complete binary payloads through model text.",
         tools: &[
             "import_conversation_files_to_project",
+            "transfer_project_artifact",
             "project_artifact",
             "save_project_artifact",
             "artifact_upload_begin",

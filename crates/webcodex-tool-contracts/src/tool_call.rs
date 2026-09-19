@@ -538,6 +538,9 @@ pub enum HostFileImportProvenance {
     #[default]
     Untrusted,
     GptActionOpenAiHost,
+    /// Authenticated MCP OAuth client that may import only from OpenAI file hosts.
+    AuthenticatedMcpOpenAiHostFile,
+    /// Explicitly allowlisted MCP client that may import from arbitrary public HTTPS.
     TrustedMcpHostFile,
 }
 
@@ -3994,6 +3997,22 @@ pub enum ToolCall {
         host_file_import_provenance: HostFileImportProvenance,
     },
 
+    /// Stream one exact source artifact snapshot directly from one Project to
+    /// another through Control, without Host attachments or model-facing base64.
+    TransferProjectArtifact {
+        /// Exact or resolvable source Runtime Project.
+        source_project: String,
+        /// Project-relative source artifact path.
+        source_path: String,
+        /// Exact or resolvable destination Runtime Project.
+        destination_project: String,
+        /// Project-relative destination artifact path.
+        destination_path: String,
+        /// Allow replacing an existing destination artifact (default false).
+        #[serde(default)]
+        overwrite: Option<bool>,
+    },
+
     /// Preferred unified read-side facade for Project artifacts. Physical
     /// dispatch remains action-specific: Runner-backed metadata/inspection and
     /// MCP presentation/authority for native images and complete export.
@@ -4014,6 +4033,7 @@ pub enum ToolCall {
         #[serde(default)]
         offset: Option<usize>,
         /// inspect only; bytes (default 32768, max 65536).
+        #[schemars(range(min = 1, max = 65536))]
         #[serde(default)]
         length: Option<usize>,
         /// inspect only; 64-char lowercase SHA-256 fence.
@@ -4021,21 +4041,6 @@ pub enum ToolCall {
         #[schemars(regex(pattern = "^[0-9a-f]{64}$"))]
         #[serde(default)]
         expected_sha256: Option<String>,
-    },
-
-    /// Prepare one project artifact for standards-native MCP resource export.
-    /// The runtime returns only stable metadata; the MCP transport owns the
-    /// short-lived resource handle and complete binary framing.
-    ExportProjectArtifact {
-        /// Runner-registered project id.
-        project: String,
-        /// Project-relative artifact path.
-        path: String,
-        /// Optional explicit wc_sess_* Workflow Session id from a prior compatible bootstrap. When
-        /// provided, this tool call is recorded in that exact Session ledger; omission leaves the call
-        /// unlinked to Workflow Session state.
-        #[serde(default)]
-        session_id: Option<String>,
     },
 
     /// Read bounded metadata for a binary project artifact. Zip files are
@@ -4077,6 +4082,7 @@ pub enum ToolCall {
         #[serde(default)]
         offset: Option<usize>,
         /// Optional chunk length in bytes; defaults to 32768 and cannot exceed 65536.
+        #[schemars(range(min = 1, max = 65536))]
         #[serde(default)]
         length: Option<usize>,
         /// Optional exact full-file snapshot fence. Normally do not invent or manually transfer it: Runtime
@@ -5127,8 +5133,8 @@ impl ToolCall {
             Self::WriteProjectFile { .. } => "write_project_file",
             Self::SaveProjectArtifact { .. } => "save_project_artifact",
             Self::ImportConversationFilesToProject { .. } => "import_conversation_files_to_project",
+            Self::TransferProjectArtifact { .. } => "transfer_project_artifact",
             Self::ProjectArtifact { .. } => "project_artifact",
-            Self::ExportProjectArtifact { .. } => "export_project_artifact",
             Self::ReadProjectArtifactMetadata { .. } => "read_project_artifact_metadata",
             Self::ReadProjectArtifact { .. } => "read_project_artifact",
             Self::ArtifactUploadBegin { .. } => "artifact_upload_begin",
@@ -5213,7 +5219,6 @@ impl ToolCall {
             | Self::SaveProjectArtifact { session_id, .. }
             | Self::ComputerSaveSnapshot { session_id, .. }
             | Self::ProjectArtifact { session_id, .. }
-            | Self::ExportProjectArtifact { session_id, .. }
             | Self::ReadProjectArtifactMetadata { session_id, .. }
             | Self::ReadProjectArtifact { session_id, .. }
             | Self::ArtifactUploadBegin { session_id, .. }
@@ -5359,7 +5364,6 @@ impl ToolCall {
             | Self::ComputerSaveSnapshot { project, .. }
             | Self::ImportConversationFilesToProject { project, .. }
             | Self::ProjectArtifact { project, .. }
-            | Self::ExportProjectArtifact { project, .. }
             | Self::ReadProjectArtifactMetadata { project, .. }
             | Self::ReadProjectArtifact { project, .. }
             | Self::ArtifactUploadBegin { project, .. }

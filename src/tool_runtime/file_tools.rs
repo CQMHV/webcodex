@@ -125,6 +125,24 @@ impl ToolRuntime {
                 self.save_project_artifact(project, path, content_base64, mime_type, overwrite)
                     .await
             }
+            ToolCall::TransferProjectArtifact {
+                source_project,
+                source_path,
+                destination_project,
+                destination_path,
+                overwrite,
+            } => {
+                self.transfer_project_artifact(
+                    source_project,
+                    source_path,
+                    destination_project,
+                    destination_path,
+                    overwrite,
+                    auth,
+                    transport.clone(),
+                )
+                .await
+            }
             ToolCall::ProjectArtifact {
                 project,
                 path,
@@ -224,28 +242,6 @@ impl ToolRuntime {
                     }
                 }
             },
-            ToolCall::ExportProjectArtifact {
-                project: _,
-                path,
-                session_id: _,
-            } => {
-                if !matches!(transport, SessionTransport::Mcp) {
-                    ToolResult::err(
-                        "export_project_artifact is MCP-only; use read_project_artifact for bounded inspection outside MCP",
-                    )
-                } else {
-                    match project_resolution {
-                        Some(Ok(resolved)) => {
-                            self.export_project_artifact_metadata_resolved(&resolved, path, auth)
-                                .await
-                        }
-                        Some(Err(error)) => error.into_tool_result(),
-                        None => ToolResult::err(
-                            "export_project_artifact requires an exact resolved Runner project",
-                        ),
-                    }
-                }
-            }
             ToolCall::ReadProjectArtifactMetadata {
                 project,
                 path,
