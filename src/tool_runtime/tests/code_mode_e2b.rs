@@ -15,6 +15,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::task::JoinHandle;
 
+#[path = "code_mode_e2c.rs"]
+mod e2c;
+
 const E2B_MUTATION_ONLY_POLICY: OrchestrationPolicy = OrchestrationPolicy {
     frontend: "code_mode_e2b_test",
     policy_name: "Code Mode E2b test",
@@ -23,6 +26,7 @@ const E2B_MUTATION_ONLY_POLICY: OrchestrationPolicy = OrchestrationPolicy {
     additional_forbidden_argument_fields: &[],
     nested_sync_wait_max_secs: None,
     max_mutation_calls: Some(1),
+    validation_after_mutation: false,
 };
 
 const READ_ONLY_TEST_POLICY: OrchestrationPolicy = OrchestrationPolicy {
@@ -33,6 +37,7 @@ const READ_ONLY_TEST_POLICY: OrchestrationPolicy = OrchestrationPolicy {
     additional_forbidden_argument_fields: &[],
     nested_sync_wait_max_secs: None,
     max_mutation_calls: None,
+    validation_after_mutation: false,
 };
 
 #[derive(Debug, Clone)]
@@ -660,7 +665,9 @@ async fn e2b_timeout_after_mutation_dispatch_reconciles_known_true_result() {
         }]});
         while (true) {}
     "#;
-    let task = spawn_e2b_call(&runtime, &project, &session_id, source, Some(50));
+    // Keep the frontend deadline above host scheduling jitter so this test
+    // exercises timeout only after the mutation has entered canonical dispatch.
+    let task = spawn_e2b_call(&runtime, &project, &session_id, source, Some(1000));
     let request = wait_for_patch_agent_request(&runtime, "e2b-timeout-known").await;
     assert_eq!(request.kind, "file_apply_text_edits");
     tokio::time::sleep(Duration::from_millis(100)).await;
@@ -706,10 +713,12 @@ async fn e2b_mutation_stall_beyond_bounded_drain_returns_outcome_unknown() {
         }]});
         while (true) {}
     "#;
-    let task = spawn_e2b_call(&runtime, &project, &session_id, source, Some(50));
+    // Keep the frontend deadline above host scheduling jitter so the child
+    // reaches canonical dispatch before bounded drain is exercised.
+    let task = spawn_e2b_call(&runtime, &project, &session_id, source, Some(1000));
     let request = wait_for_patch_agent_request(&runtime, "e2b-timeout-unknown").await;
     assert_eq!(request.kind, "file_apply_text_edits");
-    let result = tokio::time::timeout(Duration::from_secs(7), task)
+    let result = tokio::time::timeout(Duration::from_secs(8), task)
         .await
         .expect("E2b must return after the bounded five-second reconciliation")
         .unwrap();
@@ -1427,13 +1436,19 @@ async fn e2b_parent_omits_retired_continuity_overlays_after_nested_edit() {
 }
 
 #[tokio::test]
-async fn e2b_denies_validation_shell_other_mutation_and_recursion_before_business_dispatch() {
+async fn e2b_denies_shell_other_mutation_nested_jobs_and_recursion_before_business_dispatch() {
     let (_root, runtime, project, session_id) = e2b_fixture("e2b-denials", "x\n").await;
     for tool in [
-        "cargo_check",
-        "cargo_test",
         "run_shell",
+        "run_process",
+        "observe_jobs",
+        "wait_for_job_terminal",
         "apply_patch",
+        "write_file",
+        "git_commit",
+        "plugin_tool",
+        "code_mode_exec",
+        "code_mode_exec_effectful",
         "code_mode_exec_mutating",
     ] {
         let source =
