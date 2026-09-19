@@ -31,6 +31,25 @@ automatic model resumption. Do not poll the wait registration or repeatedly use
 short `observe_jobs` waits just to keep a Job visible. Explicit `observe_jobs`
 remains the fallback for details and recovery.
 
+For MCP Apps, the canonical parser-ready `suggested_call` is projected only while
+the exact wait is still `waiting/not_ready`. Use it only when no independent work remains:
+present the continuation card as the final meaningful action, then yield/end the
+current model turn promptly. If registration already returns terminal truth, handle
+that result in the current turn instead of arming a redundant follow-up.
+
+The current MCP App Host contract does not expose an authoritative "this model
+turn is now idle/terminal" acknowledgement. The Job continuation App therefore
+waits a bounded 10-second yield grace after the initial presentation tool result
+before it may dispatch `ui/message`. This mitigates dispatch racing the invoking
+turn; it is not a fabricated turn-generation fence. Until the Host exposes an
+authoritative turn/supersession signal, the automatic message must reconcile the
+terminal event against the current conversation and must not resume work superseded
+by newer user instructions. This prevents stale work from being treated as current,
+but it cannot prevent the extra best-effort wake itself. A successful `ui/message`
+RPC proves only that the Host accepted the follow-up request, not that a fresh
+model turn consumed it. Exactly-once delivery therefore still forbids blind
+redispatch after an accepted or uncertain send.
+
 A handoff failure after execution admission is `outcome_unknown`, not proof of
 pre-start rejection. Recovery reuses the same canonical, atomic promotion:
 caller authorization, cleanup ownership, terminal status, and an observation
@@ -130,7 +149,7 @@ from `wc_job_receipts` before accepting traffic. Receipt writes happen after the
 registry lock is released and cannot change a terminal verdict. The receipt
 reuses the safe Job snapshot, excludes executable validation metadata, and fixes
 `terminal_observed_at` / `expires_at` at the first accepted terminal observation.
-SQLite retains at most 64 receipts per logical Runner for 15 minutes. Expired
+SQLite retains at most 64 receipts per logical Runner for 24 hours. Expired
 receipts are pruned on database open, writes, reads, and the existing recovery
 sweep. Historical owner attribution is independent of replacement registration.
 A new observation epoch resets old tokens without granting execution authority.
@@ -195,6 +214,46 @@ summary such as runner instance, active/terminal inventory counts, reconstructed
 count, updated count, and missing count is sufficient; command text, log bodies,
 credentials, and private paths are not required.
 
+## Long-running native process/script Jobs
+
+Execution duration and lifetime ownership are separate policies. `run_process`,
+`run_script`, and `run_detached_process` default to 60 seconds and accept a
+total execution lifetime up to 604800 seconds (7 days). Values above that
+ceiling clamp to 7 days. `sync_wait_secs` controls only the bounded synchronous
+handoff grace; it never extends execution lifetime. `run_shell`, structured
+validation, and trusted Skill resource execution retain the 3600-second
+ceiling, and direct synchronous structured Runner requests retain the
+120-second ceiling.
+
+Use ordinary `run_process`/`run_script` for hours-to-days work on one Runner
+host when the Runner process is expected to remain the lifetime owner. Use
+`run_detached_process` only when the native payload must survive Runner process
+restart, upgrade, stop, or replacement; duration alone is not a detach reason.
+Detached recovery preserves the same logical Job/execution fence and does not
+permit duplicate payload dispatch.
+
+Long-running Jobs still occupy the Runner's normal `max_concurrent_jobs`
+execution quota. Detached Jobs remain excluded only from Runner shutdown drain
+because shutdown is not allowed to kill their supervisor-owned payload; they
+are not excluded from execution scheduling quota.
+
+This facility is intentionally not a cluster scheduler. It supports one Runner
+host, native processes/scripts, bounded observation, durable stop, and detached
+Runner-process replacement recovery. It does not promise native process
+survival across host OS reboot or power loss, multi-node scheduling, GPU
+allocation, preemption/requeue, Slurm/Kubernetes replacement, arbitrary
+model-provided secret environments, or detached named SSH resources. Training
+programs should write checkpoints and complete logs to project files;
+`observe_jobs` is a bounded tail and the 64 KiB Job snapshot tail is not a
+training-log store. Secret/environment configuration should remain
+Runner-owned rather than expanding model-authored inputs.
+
+Detached running-output tails are durably checkpointed at a 5-second cadence,
+rather than at the live Job update cadence, so multi-day chatty workloads do not
+turn bounded presentation state into continuous fsync pressure. Stop/control
+polling remains independent and fast, and terminalization performs a bounded
+final drain and durable commit of the final retained tails.
+
 ## 4. Runner Job capacity is shared across windows and projects
 
 `max_concurrent_jobs` is a Runner-process execution limit (default 4, valid
@@ -254,7 +313,7 @@ schema instead of repeating them in every top-level description.
 
 For ordinary tools, keep the top-level description as short as its selection and
 lifecycle semantics allow. There is no secondary numeric density limit below the
-repository hard ceiling (`MODEL_TOOL_DESCRIPTION_MAX_CHARS`, currently 900);
+repository hard ceiling (`MODEL_TOOL_DESCRIPTION_MAX_CHARS`, currently 1024);
 using more of that budget is appropriate when it preserves selection, authority,
 retry, continuation, uncertainty, safety, or recovery semantics. Avoid naming
 sibling tools merely to restate implementation or fallback details, because
