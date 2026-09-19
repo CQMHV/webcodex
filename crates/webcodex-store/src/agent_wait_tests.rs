@@ -122,10 +122,21 @@ fn wait_input(
     task_ids: &[String],
     key: &str,
 ) -> NewAgentWait {
+    wait_input_mode(target_agent_id, endpoint, task_ids, key, AgentWaitMode::Any)
+}
+
+fn wait_input_mode(
+    target_agent_id: &str,
+    endpoint: &super::communication::AgentEndpointRecord,
+    task_ids: &[String],
+    key: &str,
+    mode: AgentWaitMode,
+) -> NewAgentWait {
     NewAgentWait {
         target_agent_id: target_agent_id.to_string(),
         endpoint_id: endpoint.endpoint_id.clone(),
         expected_controller_generation: endpoint.controller_generation,
+        mode,
         events: task_ids
             .iter()
             .map(|task_id| AgentWaitEventSelector {
@@ -320,7 +331,8 @@ fn future_matches_coalesce_only_before_prepare_and_exact_consume_resumes_once() 
         .envelope
         .resume_hint
         .contains(&created.agent_wait.wait_id));
-    assert!(prepared.envelope.resume_hint.contains("match_count=2"));
+    assert!(prepared.envelope.resume_hint.contains("mode=any"));
+    assert!(prepared.envelope.resume_hint.contains("matched=2/2"));
     let hint = &prepared.envelope.resume_hint;
     for required in [
         "agent_id=",
@@ -329,7 +341,8 @@ fn future_matches_coalesce_only_before_prepare_and_exact_consume_resumes_once() 
         "wake_id=",
         "consume_token=",
         "wait_id=",
-        "match_count=2",
+        "mode=any",
+        "matched=2/2",
         "match_sequence=",
         "bootstrap_agent_conversation",
         "consume_agent_wake",
@@ -815,6 +828,747 @@ fn wait_and_task_wakes_share_the_existing_one_dispatched_wake_fence() {
         1,
         "Wait-origin Wakes must reuse the existing Agent-global durable dispatch fence"
     );
+}
+
+#[test]
+fn all_wait_records_partial_matches_without_wake_and_triggers_once_on_final_match() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-final.db")).unwrap();
+    let owner = principal('b');
+    let watcher = agent(&db, &owner, "wait-all-final-watcher");
+    let worker = agent(&db, &owner, "wait-all-final-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-final-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-final-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-final-b");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-final-a");
+    let b = start(&db, &owner, &task_b, &worker, "wait-all-final-b");
+
+    let created = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a.clone(), task_b.clone()],
+                "wait-all-final",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap();
+    assert_eq!(created.agent_wait.mode, AgentWaitMode::All);
+    assert_eq!(created.agent_wait.state, AgentWaitState::Waiting);
+    assert_eq!(created.agent_wait.match_count, 0);
+    assert!(!created.schedule_required);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [created.agent_wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        0
+    );
+
+    complete(&db, &owner, &task_a, &worker, &a, "wait-all-final-a");
+    let partial = db
+        .read_agent_wait(&owner, &created.agent_wait.wait_id)
+        .unwrap();
+    assert_eq!(partial.state, AgentWaitState::Waiting);
+    assert_eq!(partial.match_count, 1);
+    assert!(partial.revision > created.agent_wait.revision);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [partial.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        0,
+        "partial ALL match must never create a queueable Wake"
+    );
+
+    {
+        let mut conn = db.conn_for_tests();
+        let transaction = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .unwrap();
+        let duplicate = record_agent_task_terminal_wait_matches_in_transaction(
+            &transaction,
+            &owner,
+            &task_a,
+            &a.attempt.attempt_id,
+            super::agent_task::AgentTaskState::Succeeded,
+            partial.updated_at_unix_ms + 1,
+        )
+        .unwrap();
+        assert!(duplicate.schedule_agent_ids.is_empty());
+        transaction.commit().unwrap();
+    }
+    let after_duplicate = db.read_agent_wait(&owner, &partial.wait_id).unwrap();
+    assert_eq!(after_duplicate.match_count, 1);
+    assert_eq!(after_duplicate.revision, partial.revision);
+
+    complete(&db, &owner, &task_b, &worker, &b, "wait-all-final-b");
+    let final_wait = db.read_agent_wait(&owner, &partial.wait_id).unwrap();
+    assert_eq!(final_wait.state, AgentWaitState::Triggered);
+    assert_eq!(final_wait.match_count, 2);
+    let wake_id = wait_wake_id(&db, &final_wait.wait_id);
+    let wake = db.agent_wake(&wake_id).unwrap().unwrap();
+    assert_eq!(wake.wait_match_count_snapshot, Some(2));
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [final_wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        1
+    );
+
+    {
+        let mut conn = db.conn_for_tests();
+        let transaction = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .unwrap();
+        let duplicate = record_agent_task_terminal_wait_matches_in_transaction(
+            &transaction,
+            &owner,
+            &task_b,
+            &b.attempt.attempt_id,
+            super::agent_task::AgentTaskState::Succeeded,
+            final_wait.updated_at_unix_ms + 1,
+        )
+        .unwrap();
+        assert!(duplicate.schedule_agent_ids.is_empty());
+        transaction.commit().unwrap();
+    }
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [final_wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        1,
+        "duplicate terminal reconciliation must not create another Wake"
+    );
+}
+
+#[test]
+fn all_wait_registration_snapshots_mixed_and_complete_terminal_sets_atomically() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-registration.db")).unwrap();
+    let owner = principal('c');
+    let watcher = agent(&db, &owner, "wait-all-registration-watcher");
+    let worker = agent(&db, &owner, "wait-all-registration-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-registration-view");
+
+    let task_a = task(&db, &owner, &worker, "wait-all-registration-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-registration-b");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-registration-a");
+    let _b = start(&db, &owner, &task_b, &worker, "wait-all-registration-b");
+    complete(&db, &owner, &task_a, &worker, &a, "wait-all-registration-a");
+    let mixed = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a.clone(), task_b],
+                "wait-all-registration-mixed",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap();
+    assert_eq!(mixed.agent_wait.state, AgentWaitState::Waiting);
+    assert_eq!(mixed.agent_wait.match_count, 1);
+    assert!(!mixed.schedule_required);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [mixed.agent_wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        0
+    );
+
+    let task_c = task(&db, &owner, &worker, "wait-all-registration-c");
+    let task_d = task(&db, &owner, &worker, "wait-all-registration-d");
+    let c = start(&db, &owner, &task_c, &worker, "wait-all-registration-c");
+    let d = start(&db, &owner, &task_d, &worker, "wait-all-registration-d");
+    complete(&db, &owner, &task_c, &worker, &c, "wait-all-registration-c");
+    complete(&db, &owner, &task_d, &worker, &d, "wait-all-registration-d");
+    let complete_set = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_c, task_d],
+                "wait-all-registration-complete",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap();
+    assert_eq!(complete_set.agent_wait.state, AgentWaitState::Triggered);
+    assert_eq!(complete_set.agent_wait.match_count, 2);
+    assert!(complete_set.schedule_required);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [complete_set.agent_wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        1,
+        "all-terminal registration must produce exactly one Wake inside the registration transaction"
+    );
+}
+
+#[test]
+fn any_request_hash_stays_v1_compatible_and_same_key_all_conflicts() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-idempotency-mode.db")).unwrap();
+    let owner = principal('d');
+    let watcher = agent(&db, &owner, "wait-idempotency-watcher");
+    let worker = agent(&db, &owner, "wait-idempotency-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-idempotency-view");
+    let task_id = task(&db, &owner, &worker, "wait-idempotency-task");
+    let input = wait_input(
+        &watcher,
+        &endpoint,
+        std::slice::from_ref(&task_id),
+        "wait-idempotency-mode",
+    );
+    let created = db.create_agent_wait(&owner, input.clone()).unwrap();
+    let replay = db.create_agent_wait(&owner, input.clone()).unwrap();
+    assert!(replay.replayed);
+    assert_eq!(replay.agent_wait.wait_id, created.agent_wait.wait_id);
+
+    let expected_v1_hash = super::communication::digest_json(
+        "webcodex.agent-wait.request.v1",
+        &serde_json::json!({
+            "agent_id": input.target_agent_id,
+            "endpoint_id": input.endpoint_id,
+            "expected_controller_generation": input.expected_controller_generation,
+            "events": input.events,
+        }),
+    )
+    .unwrap();
+    let stored_hash: String = db
+        .conn_for_tests()
+        .query_row(
+            "SELECT request_hash FROM wc_communication_idempotency WHERE resource_id = ?1",
+            [created.agent_wait.wait_id.as_str()],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(
+        stored_hash, expected_v1_hash,
+        "mode=any must retain the exact production v1 request-hash identity"
+    );
+
+    let conflict = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                std::slice::from_ref(&task_id),
+                "wait-idempotency-mode",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap_err();
+    assert_eq!(conflict.code(), "communication_idempotency_conflict");
+}
+
+#[test]
+fn partial_all_can_cancel_or_survive_reopen_until_final_match() {
+    let temp = tempfile::tempdir().unwrap();
+    let cancel_db = Database::open(&temp.path().join("wait-all-cancel.db")).unwrap();
+    let owner = principal('e');
+    let watcher = agent(&cancel_db, &owner, "wait-all-cancel-watcher");
+    let worker = agent(&cancel_db, &owner, "wait-all-cancel-worker");
+    let cancel_endpoint = endpoint(&cancel_db, &owner, &watcher, "wait-all-cancel-view");
+    let task_a = task(&cancel_db, &owner, &worker, "wait-all-cancel-a");
+    let task_b = task(&cancel_db, &owner, &worker, "wait-all-cancel-b");
+    let a = start(&cancel_db, &owner, &task_a, &worker, "wait-all-cancel-a");
+    let _b = start(&cancel_db, &owner, &task_b, &worker, "wait-all-cancel-b");
+    let wait = cancel_db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &cancel_endpoint,
+                &[task_a.clone(), task_b],
+                "wait-all-cancel",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    complete(
+        &cancel_db,
+        &owner,
+        &task_a,
+        &worker,
+        &a,
+        "wait-all-cancel-a",
+    );
+    let cancelled = cancel_db
+        .cancel_agent_wait(&owner, &wait.wait_id, "wait-all-cancel-op")
+        .unwrap();
+    assert_eq!(cancelled.agent_wait.state, AgentWaitState::Cancelled);
+    assert_eq!(cancelled.agent_wait.match_count, 1);
+    assert_eq!(
+        cancel_db
+            .conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [wait.wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        0
+    );
+
+    let path = temp.path().join("wait-all-reopen.db");
+    let (owner, watcher, worker, task_b, b, wait_id) = {
+        let db = Database::open(&path).unwrap();
+        let owner = principal('f');
+        let watcher = agent(&db, &owner, "wait-all-reopen-watcher");
+        let worker = agent(&db, &owner, "wait-all-reopen-worker");
+        let endpoint = endpoint(&db, &owner, &watcher, "wait-all-reopen-view");
+        let task_a = task(&db, &owner, &worker, "wait-all-reopen-a");
+        let task_b = task(&db, &owner, &worker, "wait-all-reopen-b");
+        let a = start(&db, &owner, &task_a, &worker, "wait-all-reopen-a");
+        let b = start(&db, &owner, &task_b, &worker, "wait-all-reopen-b");
+        let wait = db
+            .create_agent_wait(
+                &owner,
+                wait_input_mode(
+                    &watcher,
+                    &endpoint,
+                    &[task_a.clone(), task_b.clone()],
+                    "wait-all-reopen",
+                    AgentWaitMode::All,
+                ),
+            )
+            .unwrap()
+            .agent_wait;
+        complete(&db, &owner, &task_a, &worker, &a, "wait-all-reopen-a");
+        (owner, watcher, worker, task_b, b, wait.wait_id)
+    };
+    let db = Database::open(&path).unwrap();
+    let reopened = db.read_agent_wait(&owner, &wait_id).unwrap();
+    assert_eq!(reopened.mode, AgentWaitMode::All);
+    assert_eq!(reopened.state, AgentWaitState::Waiting);
+    assert_eq!(reopened.match_count, 1);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        0
+    );
+    complete(&db, &owner, &task_b, &worker, &b, "wait-all-reopen-b");
+    let triggered = db.read_agent_wait(&owner, &wait_id).unwrap();
+    assert_eq!(triggered.state, AgentWaitState::Triggered);
+    assert_eq!(triggered.match_count, 2);
+    assert_eq!(
+        db.conn_for_tests()
+            .query_row(
+                "SELECT COUNT(*) FROM wc_agent_wakes WHERE source_wait_id = ?1",
+                [wait_id.as_str()],
+                |row| row.get::<_, i64>(0),
+            )
+            .unwrap(),
+        1
+    );
+    assert!(!watcher.is_empty());
+}
+
+#[test]
+fn old_wait_schema_migrates_mode_to_any_and_malformed_all_fails_closed() {
+    let mut conn = rusqlite::Connection::open_in_memory().unwrap();
+    conn.execute_batch(
+        "
+        CREATE TABLE wc_agent_waits (
+            wait_id TEXT PRIMARY KEY,
+            owner_principal_kind TEXT NOT NULL,
+            owner_principal_digest TEXT NOT NULL,
+            target_agent_id TEXT NOT NULL,
+            state TEXT NOT NULL CHECK(state IN ('waiting', 'triggered', 'resumed', 'cancelled')),
+            revision INTEGER NOT NULL CHECK(revision >= 1),
+            created_at_unix_ms INTEGER NOT NULL,
+            updated_at_unix_ms INTEGER NOT NULL,
+            triggered_at_unix_ms INTEGER,
+            resumed_at_unix_ms INTEGER,
+            cancelled_at_unix_ms INTEGER
+        );
+        INSERT INTO wc_agent_waits (
+            wait_id, owner_principal_kind, owner_principal_digest, target_agent_id,
+            state, revision, created_at_unix_ms, updated_at_unix_ms,
+            triggered_at_unix_ms, resumed_at_unix_ms, cancelled_at_unix_ms
+        ) VALUES (
+            'wc_agent_wait_aaaaaaaaaaaaaaaa', 'user',
+            'wc_principal_sha256_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            'wc_dagent_aaaaaaaaaaaaaaaa', 'waiting', 1, 1, 1, NULL, NULL, NULL
+        );
+        ",
+    )
+    .unwrap();
+    Database::ensure_agent_wait_schema(&mut conn).unwrap();
+    let migrated_mode: String = conn
+        .query_row(
+            "SELECT mode FROM wc_agent_waits WHERE wait_id = 'wc_agent_wait_aaaaaaaaaaaaaaaa'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(migrated_mode, "any");
+
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-malformed.db")).unwrap();
+    let owner = principal('1');
+    let watcher = agent(&db, &owner, "wait-all-malformed-watcher");
+    let worker = agent(&db, &owner, "wait-all-malformed-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-malformed-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-malformed-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-malformed-b");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-malformed-a");
+    let _b = start(&db, &owner, &task_b, &worker, "wait-all-malformed-b");
+    let wait = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a.clone(), task_b],
+                "wait-all-malformed",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    complete(&db, &owner, &task_a, &worker, &a, "wait-all-malformed-a");
+    db.conn_for_tests()
+        .execute(
+            "UPDATE wc_agent_waits
+             SET state = 'triggered', triggered_at_unix_ms = updated_at_unix_ms
+             WHERE wait_id = ?1",
+            [wait.wait_id.as_str()],
+        )
+        .unwrap();
+    let malformed = db.read_agent_wait(&owner, &wait.wait_id).unwrap_err();
+    assert_eq!(malformed.code(), "agent_wait_join_invariant");
+}
+
+#[test]
+fn malformed_complete_all_wait_cannot_be_cancelled_into_a_valid_terminal_state() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-malformed-cancel.db")).unwrap();
+    let owner = principal('2');
+    let watcher = agent(&db, &owner, "wait-all-malformed-cancel-watcher");
+    let worker = agent(&db, &owner, "wait-all-malformed-cancel-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-malformed-cancel-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-malformed-cancel-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-malformed-cancel-b");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-malformed-cancel-a");
+    let b = start(&db, &owner, &task_b, &worker, "wait-all-malformed-cancel-b");
+    complete(
+        &db,
+        &owner,
+        &task_a,
+        &worker,
+        &a,
+        "wait-all-malformed-cancel-a",
+    );
+    complete(
+        &db,
+        &owner,
+        &task_b,
+        &worker,
+        &b,
+        "wait-all-malformed-cancel-b",
+    );
+    let wait = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a, task_b],
+                "wait-all-malformed-cancel",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    let wake_id = wait_wake_id(&db, &wait.wait_id);
+    db.conn_for_tests()
+        .execute(
+            "UPDATE wc_agent_waits
+             SET state = 'waiting', triggered_at_unix_ms = NULL
+             WHERE wait_id = ?1",
+            [wait.wait_id.as_str()],
+        )
+        .unwrap();
+
+    let error = db
+        .cancel_agent_wait(&owner, &wait.wait_id, "wait-all-malformed-cancel-op")
+        .unwrap_err();
+    assert_eq!(error.code(), "agent_wait_join_invariant");
+    let state: String = db
+        .conn_for_tests()
+        .query_row(
+            "SELECT state FROM wc_agent_waits WHERE wait_id = ?1",
+            [wait.wait_id.as_str()],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(state, "waiting");
+    assert_eq!(
+        db.agent_wake(&wake_id).unwrap().unwrap().state,
+        AgentWakeState::Pending
+    );
+}
+
+#[test]
+fn all_wait_prepare_fails_closed_on_incomplete_wake_snapshot() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-malformed-wake.db")).unwrap();
+    let owner = principal('3');
+    let watcher = agent(&db, &owner, "wait-all-malformed-wake-watcher");
+    let worker = agent(&db, &owner, "wait-all-malformed-wake-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-malformed-wake-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-malformed-wake-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-malformed-wake-b");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-malformed-wake-a");
+    let b = start(&db, &owner, &task_b, &worker, "wait-all-malformed-wake-b");
+    complete(
+        &db,
+        &owner,
+        &task_a,
+        &worker,
+        &a,
+        "wait-all-malformed-wake-a",
+    );
+    complete(
+        &db,
+        &owner,
+        &task_b,
+        &worker,
+        &b,
+        "wait-all-malformed-wake-b",
+    );
+    let wait = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a, task_b],
+                "wait-all-malformed-wake",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    let wake_id = wait_wake_id(&db, &wait.wait_id);
+    let claim = db
+        .claim_next_agent_wake(
+            &owner,
+            &watcher,
+            &endpoint.endpoint_id,
+            endpoint.controller_generation,
+            "mcp_app",
+        )
+        .unwrap()
+        .unwrap();
+    db.conn_for_tests()
+        .execute(
+            "UPDATE wc_agent_wakes
+             SET wait_match_count_snapshot = 1, wait_match_sequence_snapshot = 1
+             WHERE wake_id = ?1",
+            [wake_id.as_str()],
+        )
+        .unwrap();
+
+    let error = db
+        .prepare_agent_wake_dispatch(
+            &owner,
+            &watcher,
+            &endpoint.endpoint_id,
+            endpoint.controller_generation,
+            &wake_id,
+            &claim.attempt.attempt_id,
+            &claim.claim_fence,
+            &claim.consume_token,
+        )
+        .unwrap_err();
+    assert_eq!(error.code(), "agent_wait_wake_invariant");
+    assert_eq!(
+        db.agent_wake(&wake_id).unwrap().unwrap().state,
+        AgentWakeState::Claimed
+    );
+}
+
+#[test]
+fn malformed_wait_match_sequence_fails_closed() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-malformed-sequence.db")).unwrap();
+    let owner = principal('4');
+    let watcher = agent(&db, &owner, "wait-all-malformed-sequence-watcher");
+    let worker = agent(&db, &owner, "wait-all-malformed-sequence-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-malformed-sequence-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-malformed-sequence-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-malformed-sequence-b");
+    let a = start(
+        &db,
+        &owner,
+        &task_a,
+        &worker,
+        "wait-all-malformed-sequence-a",
+    );
+    let _b = start(
+        &db,
+        &owner,
+        &task_b,
+        &worker,
+        "wait-all-malformed-sequence-b",
+    );
+    let wait = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a.clone(), task_b],
+                "wait-all-malformed-sequence",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    complete(
+        &db,
+        &owner,
+        &task_a,
+        &worker,
+        &a,
+        "wait-all-malformed-sequence-a",
+    );
+    db.conn_for_tests()
+        .execute(
+            "UPDATE wc_agent_wait_matches SET sequence = 2 WHERE wait_id = ?1",
+            [wait.wait_id.as_str()],
+        )
+        .unwrap();
+
+    let error = db.read_agent_wait(&owner, &wait.wait_id).unwrap_err();
+    assert_eq!(error.code(), "agent_wait_match_sequence_invariant");
+}
+
+#[test]
+fn malformed_all_wait_match_must_belong_to_registered_source() {
+    let temp = tempfile::tempdir().unwrap();
+    let db = Database::open(&temp.path().join("wait-all-malformed-source.db")).unwrap();
+    let owner = principal('5');
+    let watcher = agent(&db, &owner, "wait-all-malformed-source-watcher");
+    let worker = agent(&db, &owner, "wait-all-malformed-source-worker");
+    let endpoint = endpoint(&db, &owner, &watcher, "wait-all-malformed-source-view");
+    let task_a = task(&db, &owner, &worker, "wait-all-malformed-source-a");
+    let task_b = task(&db, &owner, &worker, "wait-all-malformed-source-b");
+    let task_c = task(&db, &owner, &worker, "wait-all-malformed-source-c");
+    let a = start(&db, &owner, &task_a, &worker, "wait-all-malformed-source-a");
+    let b = start(&db, &owner, &task_b, &worker, "wait-all-malformed-source-b");
+    let c = start(&db, &owner, &task_c, &worker, "wait-all-malformed-source-c");
+    let wait = db
+        .create_agent_wait(
+            &owner,
+            wait_input_mode(
+                &watcher,
+                &endpoint,
+                &[task_a.clone(), task_b.clone()],
+                "wait-all-malformed-source",
+                AgentWaitMode::All,
+            ),
+        )
+        .unwrap()
+        .agent_wait;
+    complete(
+        &db,
+        &owner,
+        &task_a,
+        &worker,
+        &a,
+        "wait-all-malformed-source-a",
+    );
+    let partial = db.read_agent_wait(&owner, &wait.wait_id).unwrap();
+    assert_eq!(partial.state, AgentWaitState::Waiting);
+    assert_eq!(partial.match_count, 1);
+
+    {
+        let conn = db.conn_for_tests();
+        conn.execute(
+            "INSERT INTO wc_agent_wait_matches (
+                 wait_id, sequence, kind, task_id, task_attempt_id, terminal_task_state, occurred_at_unix_ms
+             ) VALUES (?1, 2, 'agent_task_terminal', ?2, ?3, 'succeeded', ?4)",
+            rusqlite::params![
+                wait.wait_id,
+                task_c,
+                c.attempt.attempt_id,
+                partial.updated_at_unix_ms + 1
+            ],
+        )
+        .unwrap();
+        conn.execute(
+            "UPDATE wc_agent_waits
+             SET state = 'triggered', triggered_at_unix_ms = updated_at_unix_ms
+             WHERE wait_id = ?1",
+            [wait.wait_id.as_str()],
+        )
+        .unwrap();
+    }
+
+    let read_error = db.read_agent_wait(&owner, &wait.wait_id).unwrap_err();
+    assert_eq!(read_error.code(), "agent_wait_match_source_invariant");
+    let cancel_error = db
+        .cancel_agent_wait(&owner, &wait.wait_id, "wait-all-malformed-source-cancel")
+        .unwrap_err();
+    assert_eq!(cancel_error.code(), "agent_wait_match_source_invariant");
+    let wake_error =
+        require_agent_wait_for_wake(&db.conn_for_tests(), &owner, Some(&wait.wait_id), &watcher)
+            .unwrap_err();
+    assert_eq!(wake_error.code(), "agent_wait_match_source_invariant");
+
+    let mut conn = db.conn_for_tests();
+    let transaction = conn
+        .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+        .unwrap();
+    let terminal_error = record_agent_task_terminal_wait_matches_in_transaction(
+        &transaction,
+        &owner,
+        &task_b,
+        &b.attempt.attempt_id,
+        super::agent_task::AgentTaskState::Succeeded,
+        partial.updated_at_unix_ms + 2,
+    )
+    .unwrap_err();
+    assert_eq!(terminal_error.code(), "agent_wait_match_source_invariant");
+    transaction.rollback().unwrap();
 }
 
 #[test]
