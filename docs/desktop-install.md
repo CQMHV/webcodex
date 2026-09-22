@@ -12,9 +12,10 @@ install Desktop
 → choose the real project ChatGPT should use
 → wait for Service / Runner / Project to become ready
 → start the official OpenAI Secure Tunnel
-→ connect ChatGPT with the Tunnel ID
+→ enable Developer Mode in ChatGPT Web
+→ add a Tunnel connector in ChatGPT Web with the Tunnel ID
 → Desktop shows “Tunnel ready; waiting for ChatGPT”
-→ perform one real project read from ChatGPT as final acceptance
+→ perform one real project read from ChatGPT Web as final acceptance
 ```
 
 **Important:** “OpenAI Secure Tunnel ready” proves only that the local Tunnel is ready **for** ChatGPT. It does **not** prove that ChatGPT has connected or that a project tool can already execute. The real project read in step 8 is the final proof. For CLI, an existing remote Server, production hosting, or advanced networking, use the [Full Setup](PERSONAL_SETUP.md) or [Deployment](DEPLOYMENT.md) guides instead.
@@ -172,31 +173,48 @@ Desktop must **not** promote daemon readiness or a successful clipboard copy to 
 
 **If it fails:** first confirm that both configuration-presence fields from step 3 are Detected, then check the proxy mode in step 5 and use the on-screen Tunnel recovery action.
 
-**Next:** enter the Tunnel ID in ChatGPT.
+**Next:** enter the Tunnel ID in ChatGPT Web.
 
-## 7. Add WebCodex to ChatGPT
+## 7. Add WebCodex to ChatGPT Web
 
-When creating the custom connection/app in ChatGPT:
+All ChatGPT setup in this section is performed in **ChatGPT Web**. "Desktop"
+throughout this guide refers to **WebCodex Desktop**, not a ChatGPT desktop
+application.
 
-1. Choose **Tunnel** as the connection method.
-2. Enter the Tunnel ID from Desktop/OpenAI.
-3. Set **Authentication** to **None / No authentication**.
+1. Open [ChatGPT Web account security settings](https://chatgpt.com/#settings/Security).
+2. Under **Account security and sign-in**, enable **Developer Mode**. Review the
+   warning shown by ChatGPT before enabling it; Developer Mode permits adding
+   connectors that may make permanent changes or delete data.
 
-You do not configure OAuth in ChatGPT for this path. WebCodex keeps the MCP authorization credential locally and the Tunnel client injects it; ChatGPT does not need the local credential.
+![Enable Developer Mode in ChatGPT Web](desktop-install/chatgpt-enable-developer-mode.en.png)
 
-After saving the ChatGPT connection, return to Desktop. Saving a connection in ChatGPT does not magically upgrade local Tunnel evidence into an authoritative “connected” signal. If this Desktop version has no stable external-MCP-client observation signal, it intentionally continues to say that it is waiting for ChatGPT.
+3. Open the [ChatGPT Plugins page](https://chatgpt.com/plugins).
+4. Create a new plugin, then choose **Tunnel** as the connection method.
+5. Under **Available tunnels**, select the Tunnel configured for WebCodex. To
+   use a specific ID, choose **Use tunnel ID instead** and enter the current
+   Tunnel ID from WebCodex Desktop/OpenAI. Verify the ID if the available list
+   appears stale or shows a similarly named Tunnel.
+6. Set **Authentication** to **No Auth / None / No authentication**.
+7. Read the custom MCP server warning and select **I understand and want to
+   continue** only if you trust this WebCodex installation.
+8. Select **Create**.
+9. On the **Add … to ChatGPT** confirmation screen, select **Connect**.
 
-**Success looks like:** the ChatGPT connection is saved and the Desktop Tunnel remains running.
+You do not configure OAuth in ChatGPT Web for this path. WebCodex keeps the MCP authorization credential locally and the Tunnel client injects it; ChatGPT Web does not need the local credential.
 
-**If it fails:** verify that you entered the Tunnel ID, not the API key; Authentication should be None / No authentication. Do not paste the Tunnel API key into ChatGPT.
+After saving the connector in ChatGPT Web, return to WebCodex Desktop. Saving a connector in ChatGPT Web does not magically upgrade local Tunnel evidence into an authoritative “connected” signal. If this WebCodex Desktop version has no stable external-MCP-client observation signal, it intentionally continues to say that it is waiting for ChatGPT.
+
+**Success looks like:** the ChatGPT Web connector is saved and the WebCodex Desktop Tunnel remains running.
+
+**If it fails:** verify that you selected or entered the current Tunnel ID, not the API key; Authentication should be No Auth / None / No authentication. If the available Tunnel list appears stale, compare the exact ID with the OpenAI Tunnels page or use **Use tunnel ID instead**. Do not paste the Tunnel API key into ChatGPT Web.
 
 **Next:** immediately perform one real project read.
 
-![Create ChatGPT connection](desktop-install/image-20260906174157920.png)
+![Create a Tunnel plugin in ChatGPT Web](desktop-install/chatgpt-create-tunnel-plugin.en.png)
 
-![Tunnel configuration](desktop-install/image-20260906174207352.png)
+![Connect the Tunnel plugin to ChatGPT](desktop-install/chatgpt-connect-tunnel-plugin.en.png)
 
-![Connected](desktop-install/image-20260906174215647.png)
+![Inspect the connected plugin and its tools](desktop-install/chatgpt-tunnel-plugin-tools.en.png)
 
 ## 8. Minimal acceptance check
 

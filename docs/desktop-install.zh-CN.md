@@ -12,9 +12,10 @@
 → 选择真正要让 ChatGPT 使用的项目
 → 等待 Service / Runner / Project 全部就绪
 → 启动 OpenAI Secure Tunnel
-→ 在 ChatGPT 填 Tunnel ID
+→ 在 ChatGPT 网页版开启“开发人员模式”
+→ 在 ChatGPT 网页版添加使用 Tunnel ID 的连接器
 → Desktop 显示“Tunnel 已就绪，等待 ChatGPT”
-→ 用 ChatGPT 做一次真实项目读取作为最终验收
+→ 用 ChatGPT 网页版做一次真实项目读取作为最终验收
 ```
 
 **重要：**“OpenAI Secure Tunnel 已就绪”只证明本机 Tunnel 已经可以接受 ChatGPT 连接，**不等于 ChatGPT 已连接，也不等于已经可以执行项目工具**。最终是否打通，以第 8 步的真实项目读取为准。CLI、已有远程 Server、生产部署或高级网络配置再看[完整使用指南](PERSONAL_SETUP.zh-CN.md)和[部署指南](DEPLOYMENT.zh-CN.md)。
@@ -172,27 +173,47 @@ Windows 用户可以设置当前用户的持久环境变量。macOS 从 Finder /
 
 **失败时：**先确认第 3 步两项配置都“已检测”，再检查第 5 步代理；按页面动作重新启动安全隧道。
 
-**下一步：**把 Tunnel ID 填到 ChatGPT。
+**下一步：**把 Tunnel ID 填到 ChatGPT 网页版。
 
-## 7. 在 ChatGPT 创建连接
+## 7. 在 ChatGPT 网页版添加连接器
 
-在 ChatGPT 中创建自定义连接/应用时：
+本节中的所有 ChatGPT 配置都在 **ChatGPT 网页版**中完成。本文中的
+“Desktop”始终指 **WebCodex Desktop**，不指 ChatGPT 桌面应用。
 
-1. 选择 **Tunnel** 连接方式。
-2. 填入刚才的 Tunnel ID。
-3. **Authentication 选择 None / No authentication**。
+1. 打开 [ChatGPT 网页版的账户安全设置](https://chatgpt.com/#settings/Security)。
+2. 在**账户安全与登录**中开启**开发人员模式**。开启前请阅读 ChatGPT
+   显示的风险提示；开发人员模式允许添加可能永久修改或删除数据的连接器。
 
-这里不需要 OAuth。WebCodex 会在本机保存 MCP authorization credential，并由 Tunnel client 注入；ChatGPT 侧不需要看到这份本机凭据。
+![在 ChatGPT 网页版开启开发人员模式](desktop-install/chatgpt-enable-developer-mode.zh-CN.png)
 
-保存 ChatGPT 连接后，回到 Desktop。仅仅保存 ChatGPT 配置并不会自动把 Desktop 的本地 Tunnel 证据升级成“已连接”；如果当前版本没有稳定的外部 MCP 客户端观测信号，Desktop 会继续保守显示“等待 ChatGPT”。
+3. 打开 [ChatGPT 插件页面](https://chatgpt.com/plugins)。
+4. 创建新插件，连接方式选择 **Tunnel**。
+5. 在 **Available tunnels** 中选择为 WebCodex 配置的 Tunnel；需要指定 ID
+   时，点击 **Use tunnel ID instead**，填入 WebCodex Desktop / OpenAI 中当前的
+   Tunnel ID。如果列表可能没有刷新，或者存在名称相近的 Tunnel，请核对完整 ID。
+6. **Authentication 选择 No Auth / None / No authentication**。
+7. 阅读自定义 MCP Server 的风险提示；只有信任当前 WebCodex 安装时，才勾选
+   **I understand and want to continue**。
+8. 点击 **Create**。
+9. 在 **Add … to ChatGPT** 确认页面点击 **Connect**。
 
-**成功时你应该看到：**ChatGPT 侧连接保存成功；Desktop Tunnel 继续运行。
+这里不需要 OAuth。WebCodex 会在本机保存 MCP authorization credential，并由 Tunnel client 注入；ChatGPT 网页版不需要看到这份本机凭据。
 
-**失败时：**确认填入的是 Tunnel ID，而不是 API key；Authentication 使用 None / No authentication；API key 不应复制到 ChatGPT。
+在 ChatGPT 网页版保存连接器后，回到 WebCodex Desktop。仅仅保存 ChatGPT
+网页版的连接器并不会自动把 WebCodex Desktop 的本地 Tunnel 证据升级成
+“已连接”；如果当前版本没有稳定的外部 MCP 客户端观测信号，WebCodex
+Desktop 会继续保守显示“等待 ChatGPT”。
+
+**成功时你应该看到：**ChatGPT 网页版的连接器保存成功；WebCodex Desktop Tunnel 继续运行。
+
+**失败时：**确认选择或填入的是当前 Tunnel ID，而不是 API key；Authentication
+使用 No Auth / None / No authentication。如果 Available tunnels 列表可能没有
+刷新，请与 OpenAI Tunnels 页面中的完整 ID 对照，或使用 **Use tunnel ID
+instead**。API key 不应复制到 ChatGPT 网页版。
 
 **下一步：**立即做一次真实项目读取。
 
-![ChatGPT 创建连接示例](desktop-install/image-20260906174157920.png)
+![ChatGPT 网页版添加连接器示例](desktop-install/image-20260906174157920.png)
 
 ![Tunnel 配置示例](desktop-install/image-20260906174207352.png)
 
