@@ -86,7 +86,7 @@ WebCodex 可以在已注册的项目范围内读取和修改文件、执行命�
 
 - **macOS：**通过菜单栏中的 WebCodex 图标重新打开窗口。
 - **Windows：**通过系统托盘中的 WebCodex 图标重新打开窗口。
-- 要停止 Runtime，请使用**停止本机运行环境**；要退出应用并停止 Desktop 管理的
+- 要停止 Runtime，请使用**停止 Desktop 管理的运行环境**；要退出应用并停止 Desktop 管理的
   进程，请使用**退出 WebCodex**。
 - 如果希望登录系统后在后台启动 WebCodex，可开启**设置 → 后台与启动 → 登录时
   启动 WebCodex**。
@@ -174,7 +174,7 @@ Windows 用户可以设置当前用户的持久环境变量。macOS 从 Finder /
 
 **成功时你应该看到：**Service、Runner、Project 同时 Ready，Project 路径与实际目录一致。
 
-**失败时：**点击**重新加载项目**；仍然失败时再查看错误和**活动**详情。不要
+**失败时：**点击**重新激活项目**；仍然失败时再查看错误和**活动**详情。不要
 通过扩大项目访问范围来绕过错误。
 
 **下一步：**只有这三项都 Ready 后才启动 OpenAI Secure Tunnel。
@@ -243,9 +243,10 @@ Desktop 会继续保守显示“等待 ChatGPT”。
 **成功时你应该看到：**ChatGPT 网页版的连接器保存成功；WebCodex Desktop Tunnel 继续运行。
 
 **失败时：**确认选择或填入的是当前 Tunnel ID，而不是 API key；Authentication
-使用 No Auth / None / No authentication。如果 Available tunnels 列表可能没有
-刷新，请与 OpenAI Tunnels 页面中的完整 ID 对照，或使用 **Use tunnel ID
-instead**。API key 不应复制到 ChatGPT 网页版。
+使用 No Auth / None / No authentication。如果 Tunnel 不显示或被拒绝，请确认它已经关联到
+目标 ChatGPT workspace，并确认当前 OpenAI Platform 身份对该 Tunnel 具有 **Tunnels: Read + Use**；
+Developer Mode 与 Tunnel 权限是两套独立前提。如果只是 Available tunnels 列表可能没有刷新，
+请与 OpenAI Tunnels 页面中的完整 ID 对照，或使用 **Use tunnel ID instead**。API key 不应复制到 ChatGPT 网页版。
 
 **下一步：**立即做一次真实项目读取。
 
@@ -284,6 +285,6 @@ ChatGPT 网页版 → Tunnel → Server → Runner → Project 链路已经打�
 
 **项目目录无法访问**：到“项目”页面显式添加对应目录，不要通过扩大默认安装目录权限来绕过项目边界。
 
-**出现 `project_not_loaded` / 项目尚未就绪**：点击“重新加载项目”。Desktop 会重试同一个项目并只管理自己拥有的 Runner；普通用户不需要理解或手工修改内部 project registry。
+**出现 `project_not_loaded` / 项目尚未就绪**：点击“重新激活项目”。Desktop 会重试同一个项目并只管理自己拥有的 Runner；普通用户不需要理解或手工修改内部 project registry。
 
 **我关了窗口再打开，为什么新环境变量还是识别不到**：关闭窗口默认只是隐藏到菜单栏/托盘，进程并未退出。使用菜单栏/托盘中的**退出 WebCodex**，再重新启动新进程。

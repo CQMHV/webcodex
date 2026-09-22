@@ -99,7 +99,7 @@ application or stop the local runtime and Tunnel:
 
 - On **macOS**, use the WebCodex menu-bar item to reopen the window.
 - On **Windows**, use the WebCodex system-tray icon to reopen the window.
-- Use **Stop local runtime** to stop the runtime, or **Quit WebCodex** to exit
+- Use **Stop Desktop-owned runtime** to stop the runtime, or **Quit WebCodex** to exit
   the application and stop Desktop-managed processes.
 - Enable **Settings → Background & startup → Launch WebCodex at login** if you
   want WebCodex to start in the background when you sign in.
@@ -191,7 +191,7 @@ project** or **Add project**.
 
 **Success looks like:** Service, Runner, and Project are all Ready, and the displayed project path is exact.
 
-**If it fails:** use **Reload project**. If it still fails, inspect the error and
+**If it fails:** use **Activate project again**. If it still fails, inspect the error and
 **Activity** details. Do not broaden project access to work around the error.
 
 **Next:** start the OpenAI Secure Tunnel only after these three are ready.
@@ -260,7 +260,7 @@ After saving the connector in ChatGPT Web, return to WebCodex Desktop. Saving a 
 
 **Success looks like:** the ChatGPT Web connector is saved and the WebCodex Desktop Tunnel remains running.
 
-**If it fails:** verify that you selected or entered the current Tunnel ID, not the API key; Authentication should be No Auth / None / No authentication. If the available Tunnel list appears stale, compare the exact ID with the OpenAI Tunnels page or use **Use tunnel ID instead**. Do not paste the Tunnel API key into ChatGPT Web.
+**If it fails:** verify that you selected or entered the current Tunnel ID, not the API key; Authentication should be No Auth / None / No authentication. If the Tunnel is missing or rejected, verify that it is associated with the target ChatGPT workspace and that your OpenAI Platform identity has **Tunnels: Read + Use** for that Tunnel; Developer Mode and Tunnel permissions are separate. If the available Tunnel list merely looks stale, compare the exact ID with the OpenAI Tunnels page or use **Use tunnel ID instead**. Do not paste the Tunnel API key into ChatGPT Web.
 
 **Next:** immediately perform one real project read.
 
@@ -300,6 +300,6 @@ If Desktop shows a healthy Service / Runner / Project / Tunnel but ChatGPT still
 
 **A repository is not accessible:** add that directory explicitly on the **Projects** page instead of broadening the default Desktop project's filesystem authority.
 
-**You see `project_not_loaded` / Project not ready:** use **Reload project**. Desktop retries the same project and manages only its own Runner; normal users do not need to edit or understand the internal project registry.
+**You see `project_not_loaded` / Project not ready:** use **Activate project again**. Desktop retries the same project and manages only its own Runner; normal users do not need to edit or understand the internal project registry.
 
 **I closed the window and reopened it, but new environment variables are still missing:** since the background-lifecycle change, closing the window hides Desktop in the tray/menu bar. Use **Quit WebCodex** there, then start a new process.
