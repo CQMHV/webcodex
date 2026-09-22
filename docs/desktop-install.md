@@ -21,8 +21,8 @@ boundaries. Register only directories you intend to expose, review tool calls,
 and keep API keys, tokens, and other secrets out of prompts, screenshots, Git,
 issues, and shared logs.
 
-1. **Install and open WebCodex Desktop.** Download the Windows x64 installer or
-   the DMG matching your Mac from [GitHub Releases](https://github.com/yyjeqhc/webcodex/releases).
+1. **Install and open WebCodex Desktop.** Download the Windows installer or DMG
+   matching your machine's architecture from [GitHub Releases](https://github.com/yyjeqhc/webcodex/releases).
    On macOS, use **System Settings → Privacy & Security → Open Anyway** if the
    current non-notarized build is blocked; do not disable Gatekeeper globally.
 2. **Choose the project.** Select **Local Full Runtime / Use WebCodex on this
@@ -71,11 +71,13 @@ For everyday operation after setup, see [Using Desktop](desktop-guide.md). For
 CLI, an existing remote Server, production hosting, or advanced networking, use
 the [Full Setup](PERSONAL_SETUP.md) or [Deployment](DEPLOYMENT.md) guides.
 
+Contributors who want to modify Desktop or build their own Windows/macOS package should use [Desktop development and local packaging](DESKTOP_DEVELOPMENT.md); the install guide below assumes a finished release artifact.
+
 ## 1. Install WebCodex Desktop
 
 Download the matching Desktop artifact from the [GitHub Releases](https://github.com/yyjeqhc/webcodex/releases) page:
 
-- **Windows:** use the Windows x64 installer.
+- **Windows:** use the installer matching your architecture, x64 or ARM64. Windows ARM64 Desktop is part of the v0.4.2+ release build path.
 - **macOS:** use the DMG matching your Mac architecture, Intel or Apple Silicon.
 
 Current macOS builds are ad-hoc signed and are not notarized. If Gatekeeper blocks the first launch of a newly downloaded build, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**. Do not disable Gatekeeper globally.

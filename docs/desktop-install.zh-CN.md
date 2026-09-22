@@ -20,7 +20,7 @@ WebCodex 可以在已注册的项目范围内读取和修改文件、执行命�
 提示词、截图、Git、Issue 或共享日志。
 
 1. **安装并打开 WebCodex Desktop。**从 [GitHub Releases](https://github.com/yyjeqhc/webcodex/releases)
-   下载 Windows x64 installer，或者与 Mac 架构匹配的 DMG。当前 macOS 构建
+   下载与当前机器架构匹配的 Windows installer 或 DMG。当前 macOS 构建
    未经过 notarization；如果被拦截，进入**系统设置 → 隐私与安全 → 仍要打开**，
    不要全局关闭 Gatekeeper。
 2. **选择项目。**选择 **Local Full Runtime / 在此电脑使用 WebCodex**，再选择
@@ -59,11 +59,13 @@ WebCodex 可以在已注册的项目范围内读取和修改文件、执行命�
 远程 Server、生产部署或高级网络配置请看[完整使用指南](PERSONAL_SETUP.zh-CN.md)
 和[部署指南](DEPLOYMENT.zh-CN.md)。
 
+如果你是贡献者，希望修改 Desktop 或自己构建 Windows/macOS 安装包，请看 [Desktop 开发与本地打包](DESKTOP_DEVELOPMENT.zh-CN.md)；下面的安装指南默认你已经拿到一个完整 Release artifact。
+
 ## 1. 安装 WebCodex Desktop
 
 从 [GitHub Releases](https://github.com/yyjeqhc/webcodex/releases) 下载对应安装包：
 
-- **Windows：**使用 Windows x64 installer。
+- **Windows：**按主机架构选择 x64 或 ARM64 installer；Windows ARM64 Desktop 从 v0.4.2+ release build path 开始提供。
 - **macOS：**按 Mac 架构选择 Intel 或 Apple Silicon DMG。
 
 当前 macOS 构建使用 ad-hoc 签名且没有 notarization。如果 Gatekeeper 拦截新下载构建的首次启动，进入**系统设置 → 隐私与安全 → 仍要打开**，再确认**打开**；不要全局关闭 Gatekeeper。
