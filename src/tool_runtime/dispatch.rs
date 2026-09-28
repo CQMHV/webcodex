@@ -364,6 +364,98 @@ fn sparsify_terminal_structured_execution_success(tool_name: &str, result: &mut 
     }
 }
 
+/// Shell context is runtime-selected, so it is not redundant with the request.
+/// Only a proven ordinary synchronous terminal result may lose lifecycle facts.
+fn sparsify_terminal_shell_success(result: &mut ToolResult) {
+    if !result.success || result.error.is_some() {
+        return;
+    }
+    let Some(output) = result.output.as_object_mut() else {
+        return;
+    };
+    if output.get("execution_state").and_then(Value::as_str) != Some("completed")
+        || [
+            "command_started",
+            "command_completed",
+            "command_ok",
+            "terminal",
+        ]
+        .iter()
+        .any(|key| output.get(*key).and_then(Value::as_bool) != Some(true))
+        || output.get("promoted_to_job").and_then(Value::as_bool) != Some(false)
+        || output.get("exit_code").and_then(Value::as_i64) != Some(0)
+        || output.get("tool_failure").and_then(Value::as_bool) != Some(false)
+        || output.get("executor").and_then(Value::as_str) != Some("agent")
+        || output.get("execution_source").and_then(Value::as_str) != Some("run_shell")
+        || [
+            "requested_surface",
+            "job_id",
+            "job_status",
+            "observation_token",
+            "continuation",
+            "activity",
+            "failure_kind",
+            "recovery",
+            "recovery_kind",
+            "recovery_state",
+            "recovery_reason_code",
+            "recovered_after_server_restart",
+            "suggested_call",
+            "recovery_reason",
+            "reconciled_at",
+            "observation_error",
+            "reconciliation",
+        ]
+        .iter()
+        .any(|key| output.get(*key).is_some_and(|value| !value.is_null()))
+    {
+        return;
+    }
+    for key in [
+        "execution_state",
+        "command_started",
+        "command_completed",
+        "command_ok",
+        "exit_code",
+        "promoted_to_job",
+        "terminal",
+        "job_id",
+        "job_status",
+        "observation_token",
+        "effective_timeout_secs",
+        "sync_wait_secs",
+        "duration_ms",
+        "failure_kind",
+        "tool_failure",
+        "executor",
+        "execution_source",
+    ] {
+        output.remove(key);
+    }
+    // Availability cannot change continuation once this execution is terminal.
+    if output
+        .get("async_handoff_available")
+        .is_some_and(Value::is_boolean)
+    {
+        output.remove("async_handoff_available");
+    }
+    for key in ["stdout_tail", "stderr_tail"] {
+        if output.get(key).and_then(Value::as_str) == Some("") {
+            output.remove(key);
+        }
+    }
+    for key in ["stdout_lines", "stderr_lines"] {
+        if output.get(key).and_then(Value::as_u64) == Some(0) {
+            output.remove(key);
+        }
+    }
+    for key in ["stdout_truncated", "stderr_truncated"] {
+        if output.get(key).and_then(Value::as_bool) == Some(false) {
+            output.remove(key);
+        }
+    }
+}
+
 /// Strip successful wrapper/audit facts only after every authority and Session
 /// recorder that needs them has consumed the canonical ToolResult.
 /// Failure projection is handled separately and preserves every fact required
@@ -532,7 +624,7 @@ impl SearchModelProjection {
 
 enum ModelFacingProjection {
     None,
-    JobHandoff,
+    Execution { tool_name: &'static str },
     AgentWait,
     JobReadiness,
     ApplyTextEdits { change_count: usize, dry_run: bool },
@@ -569,7 +661,9 @@ impl ModelFacingProjectionPlan {
             | ToolCall::CargoCheck { .. }
             | ToolCall::CargoTest { .. }
             | ToolCall::ProjectValidate { .. }
-            | ToolCall::GoTest { .. } => ModelFacingProjection::JobHandoff,
+            | ToolCall::GoTest { .. } => ModelFacingProjection::Execution {
+                tool_name: call.tool_name(),
+            },
             ToolCall::ReadFiles { .. } => {
                 ModelFacingProjection::Read(super::read_files::ReadModelProjection::capture(call))
             }
@@ -596,7 +690,7 @@ impl ModelFacingProjectionPlan {
     }
 
     /// Consume the plan at the only stage allowed to turn canonical execution
-    /// output into the final model-facing read/search shape. Session/audit
+    /// output into the final model-facing shape. Session/audit
     /// recorders must run before this method.
     pub(super) fn project(self, result: &mut ToolResult) {
         match self.projection {
@@ -611,8 +705,13 @@ impl ModelFacingProjectionPlan {
                 change_count,
                 dry_run,
             } => apply_text_edits_model_projection(result, change_count, dry_run),
-            ModelFacingProjection::JobHandoff => {
-                super::jobs::sparsify_job_handoff_model_result(result)
+            ModelFacingProjection::Execution { tool_name } => {
+                if tool_name == "run_shell" {
+                    sparsify_terminal_shell_success(result);
+                }
+                sparsify_terminal_structured_execution_success(tool_name, result);
+                sparsify_structured_validation_runtime_metadata(tool_name, result);
+                super::jobs::sparsify_job_handoff_model_result(result);
             }
             ModelFacingProjection::Read(projection) => {
                 let super::read_files::ReadModelProjection::Batch {
@@ -1732,6 +1831,9 @@ impl ToolRuntime {
             }
             call = ToolCall::from_tool_name("run_shell", arguments)
                 .expect("recovery helper validated canonical run_shell");
+            // The proven normalization changes the authoritative execution form.
+            // Use shell projection so runtime-selected cwd/shell stay visible.
+            *result_projection = ModelFacingProjectionPlan::capture(&call);
             if let Some(session_id) = session_id.as_deref() {
                 if let Err(mut denial) = self
                     .authorize_session_target(session_id, "run_shell", auth)
@@ -2075,8 +2177,6 @@ impl ToolRuntime {
             window,
         )
         .await;
-        sparsify_terminal_structured_execution_success(tool_name, &mut result);
-        sparsify_structured_validation_runtime_metadata(tool_name, &mut result);
         result
     }
 
@@ -3469,7 +3569,7 @@ mod structured_execution_sparse_projection_tests {
         assert_eq!(work_result.project(), Some("demo"));
     }
 
-    fn terminal_process_result(execution_source: &str) -> ToolResult {
+    pub(super) fn terminal_process_result(execution_source: &str) -> ToolResult {
         ToolResult::ok(json!({
             "duration_ms": 1,
             "exit_code": 0,
@@ -3763,3 +3863,7 @@ mod sparse_read_projection_tests {
         assert!(result.output["items"][0]["output"].get("sha256").is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "tests/execution_projection.rs"]
+mod execution_projection_tests;

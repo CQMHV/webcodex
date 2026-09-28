@@ -1196,7 +1196,7 @@ pub(super) fn output_schema_for_tool(name: &str) -> Option<Value> {
             let mut properties = vec![
                 (
                     "duration_ms",
-                    schema_type("integer", "Command duration in milliseconds."),
+                    nullable_schema("integer", "Command duration in milliseconds when reported by the Runner; null is retained on rich exceptional/recovered terminal results when timing is unavailable."),
                 ),
                 (
                     "exit_code",
@@ -1289,12 +1289,63 @@ pub(super) fn output_schema_for_tool(name: &str) -> Option<Value> {
                         "Named Runner-local SSH resource used for this command, when any.",
                     ),
                 ),
+                ("recovery_state", schema_type("string", "Canonical recovery state retained on a recovered terminal snapshot; this result remains rich.")),
+                ("recovered_after_server_restart", schema_type("boolean", "True when the terminal snapshot was recovered after Server restart.")),
+                ("reconciled_at", schema_type("integer", "Reconciliation timestamp retained on an exceptional terminal result.")),
+                ("recovery_reason_code", schema_type("string", "Canonical recovery reason retained on a recovered terminal snapshot.")),
                 ("execution_state", process_execution_state_schema()),
             ];
             properties.extend(structured_continuation_properties());
             let mut schema = wrapped_output_schema(properties);
             schema["properties"]["output"]["allOf"] =
                 structured_execution_lifecycle_constraints("run_shell");
+            schema["description"] = json!("Ordinary proven synchronous terminal success is sparse: success=true implies completed exit 0 and no active Job. Runtime-selected command_summary, cwd, shell and any ssh_resource remain explicit. Nonempty output, truncation/loss, expectations and sidecars remain. Failure, uncertainty and exceptional/recovery results retain rich lifecycle evidence; normal pending handoff remains execution_state plus continuation.");
+            for key in ["duration_ms", "exit_code", "command_started", "command_completed",
+                "command_ok", "failure_kind", "tool_failure", "executor", "execution_source",
+                "execution_state", "promoted_to_job", "terminal", "job_id", "job_status",
+                "observation_token", "effective_timeout_secs", "sync_wait_secs", "async_handoff_available"] {
+                if let Some(description) = schema["properties"]["output"]["properties"][key]["description"].as_str() {
+                    schema["properties"]["output"]["properties"][key]["description"] =
+                        json!(format!("{description} Omitted on proven ordinary synchronous terminal success."));
+                }
+            }
+            for key in ["stdout_tail", "stderr_tail", "stdout_lines", "stderr_lines", "stdout_truncated", "stderr_truncated"] {
+                let description = schema["properties"]["output"]["properties"][key]["description"].as_str().unwrap();
+                schema["properties"]["output"]["properties"][key]["description"] =
+                    json!(format!("{description} Empty/zero/false values are omitted on ordinary synchronous terminal success."));
+            }
+            schema["allOf"]
+                .as_array_mut()
+                .expect("wrapped output schema allOf")
+                .push(json!({
+                    "if": {
+                        "properties": {
+                            "success": {"const":true},
+                            "output": {"not":{"required":["execution_state"]}}
+                        },
+                        "required":["success", "output"]
+                    },
+                    "then": {"properties":{"output":{
+                        "required":["command_summary", "cwd", "shell"],
+                        "not":{"anyOf":[
+                            {"required":["duration_ms"]}, {"required":["exit_code"]},
+                            {"required":["command_started"]}, {"required":["command_completed"]},
+                            {"required":["command_ok"]}, {"required":["failure_kind"]},
+                            {"required":["tool_failure"]}, {"required":["promoted_to_job"]},
+                            {"required":["terminal"]}, {"required":["job_id"]},
+                            {"required":["job_status"]}, {"required":["observation_token"]},
+                            {"required":["effective_timeout_secs"]}, {"required":["sync_wait_secs"]},
+                            {"required":["async_handoff_available"]}, {"required":["executor"]},
+                            {"required":["execution_source"]}, {"required":["continuation"]},
+                            {"required":["suggested_call"]}, {"required":["activity"]},
+                            {"required":["recovery_state"]},
+                            {"required":["recovered_after_server_restart"]},
+                            {"required":["reconciled_at"]}, {"required":["recovery_reason_code"]},
+                            {"required":["recovery"]}, {"required":["recovery_reason"]},
+                            {"required":["observation_error"]}, {"required":["reconciliation"]}
+                        ]}
+                    }}}
+                }));
             Some(schema)
         }
         "open_session_shell"
