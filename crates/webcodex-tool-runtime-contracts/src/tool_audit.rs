@@ -2317,11 +2317,13 @@ impl ToolCallAuditProjection for ToolCall {
             }),
             Self::ReadToolTrace {
                 trace_ref,
+                query,
                 offset,
                 limit,
                 payload_index,
             } => serde_json::json!({
                 "trace_ref": trace_ref,
+                "query_present": query.is_some(),
                 "offset": offset,
                 "limit": limit,
                 "payload_index": payload_index,
