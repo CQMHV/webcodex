@@ -2844,6 +2844,29 @@ pub enum ToolCall {
         sync_wait_secs: Option<u64>,
     },
 
+    /// Run one portable project build. The Runner resolves the nearest supported
+    /// Rust/Go recipe, plans canonical argv, and admits one typed build Job.
+    ProjectBuild {
+        /// Exact registered Runner Project.
+        project: String,
+        #[serde(default)]
+        session_id: Option<String>,
+        /// Project-relative directory; Runner resolves the nearest recipe root.
+        #[serde(default)]
+        cwd: Option<String>,
+        /// Omission means auto. Rust and Go are supported; Node/Python return unavailable.
+        #[serde(default)]
+        adapter: Option<webcodex_core::project_build::ProjectBuildAdapter>,
+        /// Optional bounded Cargo package selectors or project-relative Go package patterns.
+        #[serde(default)]
+        scope: Option<webcodex_core::project_build::ProjectBuildScope>,
+        /// Total build execution budget, default 1800 seconds, clamped to 7 days.
+        /// Host handoff timing never extends this budget or starts a second build.
+        #[serde(default)]
+        #[schemars(range(min = 1))]
+        timeout_secs: Option<u64>,
+    },
+
     /// Run portable read-only project validation. The Runner resolves the nearest
     /// supported Rust/Go recipe and admits one canonical structured validation Job.
     ProjectValidate {
@@ -5810,6 +5833,7 @@ impl ToolCall {
             Self::CargoFmt { .. } => "cargo_fmt",
             Self::CargoCheck { .. } => "cargo_check",
             Self::CargoTest { .. } => "cargo_test",
+            Self::ProjectBuild { .. } => "project_build",
             Self::ProjectValidate { .. } => "project_validate",
             Self::GoTest { .. } => "go_test",
             Self::ReadFiles { .. } => "read_files",
@@ -5966,6 +5990,7 @@ impl ToolCall {
             | Self::CargoFmt { session_id, .. }
             | Self::CargoCheck { session_id, .. }
             | Self::CargoTest { session_id, .. }
+            | Self::ProjectBuild { session_id, .. }
             | Self::ProjectValidate { session_id, .. }
             | Self::GoTest { session_id, .. }
             | Self::ReadFiles { session_id, .. }
@@ -6066,6 +6091,7 @@ impl ToolCall {
             | Self::RunDetachedProcess { cwd, .. }
             | Self::RunScript { cwd, .. }
             | Self::RunSkillResource { cwd, .. }
+            | Self::ProjectBuild { cwd, .. }
                 if cwd.is_none() =>
             {
                 *cwd = execution_context.default_cwd.clone();
@@ -6117,6 +6143,7 @@ impl ToolCall {
             | Self::CargoFmt { project, .. }
             | Self::CargoCheck { project, .. }
             | Self::CargoTest { project, .. }
+            | Self::ProjectBuild { project, .. }
             | Self::ProjectValidate { project, .. }
             | Self::GoTest { project, .. }
             | Self::ReadFiles { project, .. }
