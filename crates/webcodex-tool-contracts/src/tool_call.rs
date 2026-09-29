@@ -3650,8 +3650,9 @@ pub enum ToolCall {
         idempotency_key: String,
     },
 
-    /// Compatibility name for server-local continuation Endpoint rotation.
-    /// Attach a current Host/Client Endpoint to a durable Agent.
+    /// Frozen GPT Actions spelling only; absent from the default canonical parser.
+    /// This exception retires with the legacy adapter, not with a schema refresh.
+    #[cfg(feature = "legacy-gpt-actions")]
     AttachAgentEndpoint {
         /// Canonical durable Agent id owned by the current communication principal.
         #[schemars(regex(pattern = "^wc_dagent_[A-Za-z0-9_-]{16}$"))]
@@ -5446,7 +5447,7 @@ fn canonicalize_process_argv_alias(name: &str, arguments: &mut Value) -> Result<
     };
     if let Some(canonical) = object.get("args") {
         if canonical != &alias {
-            return Err("ambiguous compatibility alias: args and argv differ".to_string());
+            return Err("ambiguous input alias: args and argv differ".to_string());
         }
     } else {
         object.insert("args".to_string(), alias);
@@ -5469,7 +5470,8 @@ impl ToolCall {
         Self::from_tool_name_with_normalization(name, arguments).map(|(call, _)| call)
     }
 
-    /// Returns a stable code only when a documented compatibility alias was used.
+    /// Returns a stable code only when an explicit ergonomic input alias was
+    /// normalized to avoid a mechanical retry. This is not API compatibility.
     pub fn from_tool_name_with_normalization(
         name: &str,
         arguments: Value,
@@ -5748,6 +5750,7 @@ impl ToolCall {
             Self::ListAgentIdentities { .. } => "list_agent_identities",
             Self::UpdateAgentIdentity { .. } => "update_agent_identity",
             Self::RotateAgentContinuationEndpoint { .. } => "rotate_agent_continuation_endpoint",
+            #[cfg(feature = "legacy-gpt-actions")]
             Self::AttachAgentEndpoint { .. } => "attach_agent_endpoint",
             Self::PresentAgentContinuation { .. } => "present_agent_continuation",
             Self::AgentContinuationBind { .. } => "agent_continuation_bind",

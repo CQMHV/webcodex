@@ -1203,11 +1203,13 @@ fn job_terminal_continuation_app_contract_is_exact_wait_plus_private_view_fence_
     )
     .is_ok());
 
-    let registered = registered_tool_specs();
-    let present = spec_named(&registered, "present_job_terminal_continuation");
-    assert_eq!(present.input_schema["required"], json!(["wait_id"]));
+    assert!(!registered_tool_specs()
+        .iter()
+        .any(|spec| spec.name == "present_job_terminal_continuation"));
+    let present = input_schema_for_tool("present_job_terminal_continuation");
+    assert_eq!(present["required"], json!(["wait_id"]));
     assert_eq!(
-        present.input_schema["properties"]["wait_id"]["pattern"],
+        present["properties"]["wait_id"]["pattern"],
         "^wc_job_wait_[A-Za-z0-9_-]{16}$"
     );
 }
@@ -1296,6 +1298,29 @@ fn process_alias_and_python_are_host_visible_without_opening_objects() {
             schema["properties"]["argv"]["maxItems"],
             schema["properties"]["args"]["maxItems"]
         );
+        let mut alias = schema["properties"]["argv"].clone();
+        let mut canonical = schema["properties"]["args"].clone();
+        let description = alias
+            .as_object_mut()
+            .unwrap()
+            .remove("description")
+            .unwrap();
+        canonical.as_object_mut().unwrap().remove("description");
+        assert_eq!(
+            alias, canonical,
+            "{name}: an alias must retain all canonical bounds"
+        );
+        assert!(description.as_str().unwrap().contains("mechanical retry"));
+        assert!(!description.as_str().unwrap().contains("Compatibility"));
+        let mut arguments = json!({"project":"demo", "executable":"git", "argv":["status"]});
+        if name == "run_detached_process" {
+            arguments["idempotency_key"] = json!("schema-key");
+        }
+        assert!(test_support::validate_schema_instance(&arguments, &schema).is_ok());
+        arguments["args"] = json!(["status"]);
+        assert!(test_support::validate_schema_instance(&arguments, &schema).is_ok());
+        arguments["argz"] = json!(["status"]);
+        assert!(test_support::validate_schema_instance(&arguments, &schema).is_err());
         assert!(schema["properties"].get("arguments").is_none());
     }
     let schema = input_schema_for_tool("run_script");

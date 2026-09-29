@@ -42,8 +42,8 @@ use super::metadata::{
 #[cfg(any(test, feature = "root-test-support"))]
 pub use super::tool_catalog::TOOL_MANIFEST_INTENTS;
 pub use super::tool_catalog::{
-    available_tool_manifest_intent_names, resolve_tool_manifest_intent, CODING_INTENT_TOOL_NAMES,
-    TOOL_RECOMMENDED_FLOWS,
+    available_tool_manifest_intent_names, model_visible_recommended_flows,
+    resolve_tool_manifest_intent, CODING_INTENT_TOOL_NAMES, TOOL_RECOMMENDED_FLOWS,
 };
 #[cfg(any(test, feature = "root-test-support"))]
 pub use super::tool_policy::is_known_tool_name;
@@ -983,18 +983,35 @@ impl ToolHostOrchestrationHint {
     }
 }
 
+/// Why a dedicated Adaptive Runtime descriptor is needed. This is static
+/// exposure policy, not a category, authority, effect, or model-facing field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToolDirectReason {
+    CoreWorkflow,
+    HostIntegration,
+    Presentation,
+    Continuation,
+}
+
+/// One canonical Direct policy: ordering and its reason cannot drift apart.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ToolAdaptiveDirectPolicy {
+    pub rank: u16,
+    pub reason: ToolDirectReason,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ToolDefinition {
     pub name: &'static str,
     pub audit: ToolAuditPolicy,
     pub model_spec: Option<ToolModelSpecDeclaration>,
-    /// Stable direct-call ordering for the one canonical Adaptive Runtime.
-    /// `None` means a model-visible tool belongs to the long tail behind
-    /// `call_runtime_tool`.
-    pub adaptive_runtime_direct_rank: Option<u16>,
-    /// GPT Actions follows canonical Adaptive routing unless this definition
-    /// declares a concrete protocol incompatibility or a gateway-only surface
-    /// budget exception.
+    /// Static dedicated-descriptor policy for Adaptive Runtime. `None` grants
+    /// no admission: ordinary model-visible tools use the gateway, while hidden
+    /// tools and operator extensions retain their independent admission rules.
+    pub adaptive_runtime_direct: Option<ToolAdaptiveDirectPolicy>,
+    /// Eligibility/exclusion metadata for the frozen GPT Actions adapter.
+    /// Its admitted names and Direct/Gateway placement come from legacy
+    /// snapshots, not from Adaptive rank or reason.
     pub gpt_action_exposure: ToolGptActionExposure,
     pub operator_extension_family: Option<ToolOperatorExtensionFamily>,
     /// Optional canonical selection semantics for ordinary execution tools.
@@ -1183,7 +1200,7 @@ const fn def(
         name,
         audit,
         model_spec: None,
-        adaptive_runtime_direct_rank: None,
+        adaptive_runtime_direct: None,
         gpt_action_exposure: ToolGptActionExposure::Inherit,
         operator_extension_family: None,
         execution: None,
@@ -1218,9 +1235,17 @@ const fn model_spec(definition: ToolDefinition, description: &'static str) -> To
     }
 }
 
-const fn adaptive_runtime_direct(definition: ToolDefinition, rank: u16) -> ToolDefinition {
+const fn adaptive_runtime_direct(
+    definition: ToolDefinition,
+    rank: u16,
+    reason: ToolDirectReason,
+) -> ToolDefinition {
+    assert!(matches!(
+        definition.visibility,
+        ToolVisibility::ModelVisible
+    ));
     ToolDefinition {
-        adaptive_runtime_direct_rank: Some(rank),
+        adaptive_runtime_direct: Some(ToolAdaptiveDirectPolicy { rank, reason }),
         ..definition
     }
 }
