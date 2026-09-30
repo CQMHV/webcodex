@@ -579,6 +579,8 @@ fn prompt_count(temp: &TempDir) -> usize {
 mod admission;
 mod dogfood;
 mod lifecycle;
+#[cfg(unix)]
+mod model_gateway;
 mod protocol;
 mod recovery;
 mod terminal;

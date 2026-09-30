@@ -18,6 +18,7 @@ impl ToolRuntime {
                 provider_id,
                 idempotency_key,
                 instruction,
+                context_session_id,
                 config,
                 timeout_secs,
                 recording_session_id,
@@ -30,6 +31,7 @@ impl ToolRuntime {
                     config,
                     timeout_secs,
                     recording_session_id,
+                    context_session_id,
                     auth,
                 ))
                 .await

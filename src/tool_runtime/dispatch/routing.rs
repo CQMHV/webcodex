@@ -77,6 +77,7 @@ impl ToolRuntime {
                 trusted_recording_session_project,
             ),
             call @ (ToolCall::StartSession { .. }
+            | ToolCall::ListSessions { .. }
             | ToolCall::SessionSummary { .. }
             | ToolCall::UpdateSessionContext { .. }
             | ToolCall::CloseSession { .. }

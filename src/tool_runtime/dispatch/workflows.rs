@@ -17,6 +17,7 @@ impl ToolRuntime {
     ) -> ToolResult {
         match call {
             call @ (ToolCall::StartSession { .. }
+            | ToolCall::ListSessions { .. }
             | ToolCall::SessionSummary { .. }
             | ToolCall::UpdateSessionContext { .. }
             | ToolCall::CloseSession { .. }
