@@ -198,15 +198,21 @@ class WindowsUnifiedNsisTests(unittest.TestCase):
         expected = "a" * 64
         program = base64.b64decode(bootstrap.candidate_hash_command(expected)).decode("utf-16le")
         self.assertIn(f"$h -ne '{expected}'", program)
-        self.assertIn("-LiteralPath $env:WEBCODEX_INSTALLER_CANDIDATE_CLI", program)
+        self.assertIn("[System.IO.File]::OpenRead($env:WEBCODEX_INSTALLER_CANDIDATE_CLI)", program)
+        self.assertIn("[System.Security.Cryptography.SHA256]::Create()", program)
         self.assertIn("catch { exit 1 }", program)
+        self.assertNotIn("Get-FileHash", program)
         self.assertNotIn("$args", program)
 
     @unittest.skipUnless(os.name == "nt", "requires native Windows PowerShell")
     def test_native_candidate_hash_check_accepts_only_exact_bytes_in_quoted_paths(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "candidate with 'quote' and $variable.exe"
-            path.write_bytes(pe(0x8664))
+            # Use a real Windows executable so this path-quoting/hash test does
+            # not depend on hosted-runner handling of a deliberately malformed
+            # 128-byte PE-looking file.
+            source = Path(os.environ["SystemRoot"]) / "System32/cmd.exe"
+            path.write_bytes(source.read_bytes())
             encoded = bootstrap.candidate_hash_command(hashlib.sha256(path.read_bytes()).hexdigest())
             command = [str(Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"),
                        "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded]
@@ -216,7 +222,11 @@ class WindowsUnifiedNsisTests(unittest.TestCase):
                     action()
                 result = subprocess.run(command, env=env, stdin=subprocess.DEVNULL,
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
-                self.assertEqual(result.returncode, expected)
+                self.assertEqual(
+                    result.returncode,
+                    expected,
+                    msg=f"stdout={result.stdout!r} stderr={result.stderr!r}",
+                )
 
     def test_rejects_pe_architecture_mismatch_before_rendering_nsis(self):
         with tempfile.TemporaryDirectory() as temp:
